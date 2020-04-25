@@ -58,8 +58,8 @@ int socket_resolve_addr(socket_t *self, const char *host, const char *port) {
     }
     freeaddrinfo(ai_list);
 
-    // No available connections
     if (self->sd == -1) {
+        printf("There are no available connections")
         return ERROR;
     }
     return OK;
@@ -73,15 +73,15 @@ int socket_bind(socket_t *self, struct sockaddr *addr, socklen_t len) {
     status = setsockopt(self->sd, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val));
 
     if (status == -1) {
-        printf("Error:%s\n", strerror(errno));
         socket_close(self);
+        printf("Error:%s\n", strerror(errno));
         return ERROR;
     }
     status = bind(self->sd, addr, len);
 
     if (status == -1) {
-        printf("Error:%s\n", strerror(errno));
         socket_close(self);
+        printf("Error:%s\n", strerror(errno));
         return ERROR;
     }
     return OK;
@@ -91,14 +91,20 @@ int socket_listen(socket_t *self) {
     int status = listen(self->sd, MAX_LISTEN_QUEUE_LEN);
 
     if (status == -1) {
-        printf("Error:%s\n", strerror(errno));
         socket_close(self);
+        printf("Error:%s\n", strerror(errno));
         return ERROR;
     }
     return OK;
 }
 
 int socket_accept(socket_t *self, socket_t *accepted_socket) {
+    accepted_socket->sd = accept(self->sd, NULL, NULL);
+
+    if (accepted_socket->sd == -1) {
+        printf("Error:%s\n", strerror(errno));
+        return ERROR;
+    }
     return OK;
 }
 
@@ -106,8 +112,8 @@ int socket_connect(socket_t *self, struct sockaddr *addr, socklen_t len) {
     int status = connect(self->sd, addr, len);
 
     if (status == -1) {
-        printf("Error:%s\n", strerror(errno));
         socket_close(self);
+        printf("Error:%s\n", strerror(errno));
         return ERROR;
     }
     return OK;
