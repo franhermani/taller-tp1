@@ -59,7 +59,7 @@ int socket_resolve_addr(socket_t *self, const char *host, const char *port) {
     freeaddrinfo(ai_list);
 
     if (self->sd == -1) {
-        printf("There are no available connections")
+        printf("There are no available connections");
         return ERROR;
     }
     return OK;
