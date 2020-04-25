@@ -3,7 +3,7 @@
 #define ERROR -1
 #define MAX_LISTEN_QUEUE_LEN 10
 
-#include "socket.h"
+#include "common_socket.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -16,7 +16,7 @@
 
 int socket_create(socket_t *self, const char *host, const char *port) {
     self->sd = -1;
-    self->is_server = (! host);
+    self->is_server = (host == 0);
 
     memset(&self->hints, 0, sizeof(struct addrinfo));
     self->hints.ai_family = AF_INET;          // IPv4

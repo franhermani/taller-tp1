@@ -1,13 +1,15 @@
 #ifndef SOCKET_H
 #define SOCKET_H
 
+#define _POSIX_C_SOURCE 200112L
+
 #include <string.h>
 #include <stdbool.h>
 #include <netdb.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 
-typedef struct socket_t {
+typedef struct {
     int sd;                 // Socket Descriptor
     struct addrinfo hints;  // Socket Info
     bool is_server;         // Server or Client
