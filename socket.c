@@ -74,14 +74,14 @@ int socket_bind(socket_t *self, struct sockaddr *addr, socklen_t len) {
 
     if (status == -1) {
         printf("Error:%s\n", strerror(errno));
-        // TODO: close socket
+        socket_close(self);
         return ERROR;
     }
     status = bind(self->sd, addr, len);
 
     if (status == -1) {
         printf("Error:%s\n", strerror(errno));
-        // TODO: close socket
+        socket_close(self);
         return ERROR;
     }
     return OK;
@@ -92,7 +92,7 @@ int socket_listen(socket_t *self) {
 
     if (status == -1) {
         printf("Error:%s\n", strerror(errno));
-        // TODO: close socket
+        socket_close(self);
         return ERROR;
     }
     return OK;
@@ -107,9 +107,30 @@ int socket_connect(socket_t *self, struct sockaddr *addr, socklen_t len) {
 
     if (status == -1) {
         printf("Error:%s\n", strerror(errno));
-        // TODO: close socket
+        socket_close(self);
         return ERROR;
     }
-
     return OK;
+}
+
+int socket_send(socket_t *self, const char *buffer, size_t length) {
+    return OK;
+}
+
+int socket_receive(socket_t *self, char *buffer, size_t length) {
+    return OK;
+}
+
+void socket_shutdown(socket_t *self, int channel) {
+    shutdown(self->sd, channel);
+}
+
+void socket_close(socket_t *self) {
+    close(self->sd);
+    self->sd = -1;
+    socket_destroy(self);
+}
+
+void socket_destroy(socket_t *self) {
+    // Do nothing
 }

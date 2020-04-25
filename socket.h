@@ -48,9 +48,11 @@ int socket_send(socket_t *self, const char *buffer, size_t length);
 // Returns number of bytes received or error code
 int socket_receive(socket_t *self, char *buffer, size_t length);
 
-// Shuts down a socket given channel
-// Returns 0 if OK or error code
+// Shuts down a socket given channel (R, W or RW)
 void socket_shutdown(socket_t *self, int channel);
+
+// Closes a socket
+void socket_close(socket_t *self);
 
 // Destroys a socket
 void socket_destroy(socket_t *self);
