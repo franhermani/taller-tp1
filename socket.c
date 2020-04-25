@@ -103,5 +103,13 @@ int socket_accept(socket_t *self, socket_t *accepted_socket) {
 }
 
 int socket_connect(socket_t *self, struct sockaddr *addr, socklen_t len) {
+    int status = connect(self->sd, addr, len);
+
+    if (status == -1) {
+        printf("Error:%s\n", strerror(errno));
+        // TODO: close socket
+        return ERROR;
+    }
+
     return OK;
 }
