@@ -3,9 +3,9 @@
 
 #include <string.h>
 #include <stdbool.h>
+#include <netdb.h>
 #include <sys/socket.h>
 #include <sys/types.h>
-#include <netdb.h>
 
 typedef struct socket_t {
     int sd;                 // Socket Descriptor
@@ -23,7 +23,7 @@ int socket_resolve_addr(socket_t *self, const char *host, const char *port);
 
 // [Server only] Associates a socket to a given process
 // Returns 0 if OK or error code
-int socket_bind(socket_t *self, struct sockaddr *addr, socklen_t addrlen);
+int socket_bind(socket_t *self, struct sockaddr *addr, socklen_t len);
 
 // [Server only] Listens to incoming sockets connections and
 // sends them to the queue
@@ -37,7 +37,7 @@ int socket_accept(socket_t *self, socket_t *accepted_socket);
 
 // [Client only] Tries to connect a client socket to a server one
 // Returns 0 if OK or error code
-int socket_connect(socket_t *self, struct sockaddr *addr, socklen_t addrlen);
+int socket_connect(socket_t *self, struct sockaddr *addr, socklen_t len);
 
 // Tries to send 'length' bytes from 'buffer' to another socket
 // Returns number of bytes sent or error code

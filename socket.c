@@ -1,15 +1,17 @@
 #define _POSIX_C_SOURCE 200112L
 #define OK 0
 #define ERROR -1
+#define MAX_LISTEN_QUEUE_LEN 10
 
 #include "socket.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <errno.h>
 #include <unistd.h>
+#include <netdb.h>
 #include <sys/socket.h>
 #include <sys/types.h>
-#include <netdb.h>
 
 int socket_create(socket_t *self, const char *host, const char *port) {
     self->sd = -1;
@@ -23,7 +25,6 @@ int socket_create(socket_t *self, const char *host, const char *port) {
     if (! socket_resolve_addr(self, host, port)) {
         return ERROR;
     }
-
     return OK;
 }
 
@@ -55,10 +56,52 @@ int socket_resolve_addr(socket_t *self, const char *host, const char *port) {
                 break;
         }
     }
+    freeaddrinfo(ai_list);
 
     // No available connections
     if (self->sd == -1) {
         return ERROR;
     }
+    return OK;
+}
+
+int socket_bind(socket_t *self, struct sockaddr *addr, socklen_t len) {
+    int status;
+
+    // Configures socket to reuse the address in case the port is in TIME WAIT
+    int val = 1;
+    status = setsockopt(self->sd, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val));
+
+    if (status == -1) {
+        printf("Error:%s\n", strerror(errno));
+        // TODO: close socket
+        return ERROR;
+    }
+    status = bind(self->sd, addr, len);
+
+    if (status == -1) {
+        printf("Error:%s\n", strerror(errno));
+        // TODO: close socket
+        return ERROR;
+    }
+    return OK;
+}
+
+int socket_listen(socket_t *self) {
+    int status = listen(self->sd, MAX_LISTEN_QUEUE_LEN);
+
+    if (status == -1) {
+        printf("Error:%s\n", strerror(errno));
+        // TODO: close socket
+        return ERROR;
+    }
+    return OK;
+}
+
+int socket_accept(socket_t *self, socket_t *accepted_socket) {
+    return OK;
+}
+
+int socket_connect(socket_t *self, struct sockaddr *addr, socklen_t len) {
     return OK;
 }
