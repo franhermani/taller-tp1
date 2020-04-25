@@ -1,7 +1,7 @@
 #define _POSIX_C_SOURCE 200112L
 #define OK 0
 #define ERROR -1
-#define MAX_LISTEN_QUEUE_LEN 10
+#define MAX_LISTEN_QUEUE_LEN 1
 
 #include "common_socket.h"
 #include <stdio.h>
@@ -23,10 +23,7 @@ int socket_create(socket_t *self, const char *host, const char *port) {
     self->hints.ai_socktype = SOCK_STREAM;    // TCP
     self->hints.ai_flags = self->is_server ? AI_PASSIVE : 0;
 
-    if (! socket_resolve_addr(self, host, port)) {
-        return ERROR;
-    }
-    return OK;
+    return socket_resolve_addr(self, host, port);
 }
 
 int socket_resolve_addr(socket_t *self, const char *host, const char *port) {
