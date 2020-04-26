@@ -1,7 +1,4 @@
 #define _POSIX_C_SOURCE 200112L
-#define OK 0
-#define ERROR -1
-#define MAX_LISTEN_QUEUE_LEN 1
 
 #include "common_socket.h"
 #include <stdio.h>
@@ -12,7 +9,11 @@
 #include <unistd.h>
 #include <netdb.h>
 #include <sys/socket.h>
+
 #include <sys/types.h>
+#define OK 0
+#define ERROR -1
+#define MAX_LISTEN_QUEUE_LEN 1
 
 int socket_create(socket_t *self, const char *host, const char *port) {
     self->sd = -1;

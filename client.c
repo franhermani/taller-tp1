@@ -6,9 +6,11 @@ int main(int argc, char *argv[]) {
     const char *host = argv[1];
     const char *port = argv[2];
 
-    int s = socket_create(&socket, host, port);
-    printf("Result: %i\n", s);
+    socket_create(&socket, host, port);
 
+    while (1) {
+        // socket_send(&socket, buffer, strlen(buffer));
+    }
     return 0;
 }
 
