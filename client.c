@@ -19,6 +19,7 @@ int main(int argc, char *argv[]) {
     printf("Received response from server: %s\n", response);
 
     printf("Shutting down socket...\n");
+    socket_shutdown(&socket_client, SHUT_RDWR);
     socket_close(&socket_client);
     return 0;
 }
