@@ -9,8 +9,8 @@
 #include <unistd.h>
 #include <netdb.h>
 #include <sys/socket.h>
-
 #include <sys/types.h>
+
 #define OK 0
 #define ERROR -1
 #define MAX_LISTEN_QUEUE_LEN 1

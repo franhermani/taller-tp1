@@ -59,4 +59,4 @@ void socket_close(socket_t *self);
 // Destroys a socket
 void socket_destroy(socket_t *self);
 
-#endif //SOCKET_H
+#endif // SOCKET_H
