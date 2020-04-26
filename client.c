@@ -1,12 +1,14 @@
 #include "common_socket.h"
 #include <stdio.h>
 
-#define RESPONSE_MAX_LEN    1024
+#define RESPONSE_MAX_LEN 1024
 
 int main(int argc, char *argv[]) {
     socket_t socket_client;
     const char *host = argv[1];
     const char *port = argv[2];
+    // TODO: el 3er parametro va a ser input_file
+    // TODO: si no se especifica, leer de entrada estandar
     const char *request = argv[3];
     char response[RESPONSE_MAX_LEN];
 

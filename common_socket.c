@@ -120,7 +120,7 @@ int socket_connect(socket_t *self, struct sockaddr *addr, socklen_t len) {
 
 int socket_send(socket_t *self, const char *buffer, size_t length) {
     int tot_bytes_sent = 0;
-    int bytes_sent;
+    int bytes_sent = 0;
     bool socket_closed = false;
     bool socket_error = false;
 
@@ -147,12 +147,12 @@ int socket_send(socket_t *self, const char *buffer, size_t length) {
 
 int socket_receive(socket_t *self, char *buffer, size_t length) {
     int tot_bytes_recv = 0;
-    int bytes_recv;
+    int bytes_recv = 0;
     bool socket_closed = false;
     bool socket_error = false;
 
     while (tot_bytes_recv < length && (! socket_closed) && (! socket_error)) {
-        bytes_recv = send(self->sd, &buffer[tot_bytes_recv],
+        bytes_recv = recv(self->sd, &buffer[tot_bytes_recv],
                           length - tot_bytes_recv, 0);
         if (bytes_recv == -1) {
             printf("Error: %s\n", strerror(errno));

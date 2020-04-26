@@ -1,14 +1,14 @@
 #include "common_socket.h"
 #include <stdio.h>
 
-#define REQUEST_MAX_LEN    1024
+#define REQUEST_MAX_LEN 1024
 
 int main(int argc, char *argv[]) {
     socket_t socket_acceptor, socket_client;
     const char *host = 0;
     const char *port = argv[1];
     char request[REQUEST_MAX_LEN];
-    char *response = "OK";
+    char *response = "OK\n";
 
     socket_create(&socket_acceptor, host, port);
     socket_listen(&socket_acceptor);
