@@ -17,7 +17,9 @@ int main(int argc, char *argv[]) {
     socket_send(&socket_client, request, strlen(request));
     printf("Sent request to server: %s\n", request);
 
-    socket_receive(&socket_client, response, strlen(response));
+    // TODO: ver como limitar el buffer para que no siga leyendo basura
+    // TODO: si yo le paso el largo exacto del string, funciona OK
+    socket_receive(&socket_client, response, RESPONSE_MAX_LEN);
     printf("Received response from server: %s\n", response);
 
     printf("Shutting down socket...\n");
