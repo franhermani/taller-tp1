@@ -14,6 +14,7 @@ int main(int argc, char *argv[]) {
     const char *request = argv[3];
     char response[RESPONSE_MAX_LEN];
 
+    printf("Opening socket...\n");
     if (socket_create(&socket_client, host, port) == ERROR)
         return ERROR;
 
@@ -21,13 +22,14 @@ int main(int argc, char *argv[]) {
         return ERROR;
 
     printf("Sent request to server: %s\n", request);
+    socket_shutdown(&socket_client, SHUT_WR);
 
     if (socket_receive(&socket_client, response, RESPONSE_MAX_LEN) == ERROR)
         return ERROR;
 
     printf("Received response from server: %s\n", response);
-    printf("Shutting down socket...\n");
-    socket_shutdown(&socket_client, SHUT_RDWR);
+    socket_shutdown(&socket_client, SHUT_RD);
+    printf("Closing socket...\n");
     socket_close(&socket_client);
     return 0;
 }
