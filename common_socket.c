@@ -151,25 +151,26 @@ int socket_receive(socket_t *self, char *buffer, size_t length) {
     bool socket_closed = false;
     bool socket_error = false;
 
-    while (tot_bytes_recv < length && (! socket_closed) && (! socket_error)) {
+    while ((!socket_closed) && (!socket_error)) {
         bytes_recv = recv(self->sd, &buffer[tot_bytes_recv],
-                          length - tot_bytes_recv, 0);
+                          length - tot_bytes_recv - 1, 0);
         if (bytes_recv == -1) {
             printf("Error: %s\n", strerror(errno));
             socket_error = true;
         } else if (bytes_recv == 0) {
-            printf("Error: the socket has been closed\n");
             socket_closed = true;
         } else {
             tot_bytes_recv += bytes_recv;
         }
     }
-    if (socket_closed || socket_error) {
+    buffer[tot_bytes_recv+1] = '\0';
+
+    if (socket_error) {
         socket_shutdown(self, SHUT_RDWR);
         socket_close(self);
         return ERROR;
     }
-    return OK;
+    return tot_bytes_recv;
 }
 
 void socket_shutdown(socket_t *self, int channel) {

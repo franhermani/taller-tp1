@@ -1,6 +1,8 @@
 #include "common_socket.h"
 #include <stdio.h>
 
+#define OK 0
+#define ERROR -1
 #define REQUEST_MAX_LEN 1024
 
 int main(int argc, char *argv[]) {
@@ -10,20 +12,26 @@ int main(int argc, char *argv[]) {
     char request[REQUEST_MAX_LEN];
     char *response = "OK\n";
 
-    socket_create(&socket_acceptor, host, port);
-    socket_listen(&socket_acceptor);
+    if (socket_create(&socket_acceptor, host, port) == ERROR)
+        return ERROR;
+
+    if (socket_listen(&socket_acceptor) == ERROR)
+        return ERROR;
 
     printf("Accepting connections...\n");
-    socket_accept(&socket_acceptor, &socket_client);
 
-    // TODO: ver como limitar el buffer para que no siga leyendo basura
-    // TODO: si yo le paso el largo exacto del string, funciona OK
-    socket_receive(&socket_client, request, REQUEST_MAX_LEN);
+    if (socket_accept(&socket_acceptor, &socket_client) == ERROR)
+        return ERROR;
+
+    if (socket_receive(&socket_client, request, REQUEST_MAX_LEN) == ERROR)
+        return ERROR;
+
     printf("Received from client: %s\n", request);
 
-    socket_send(&socket_client, response, strlen(response));
-    printf("Sent to client: %s\n", response);
+    if (socket_send(&socket_client, response, strlen(response)) == ERROR)
+        return ERROR;
 
+    printf("Sent to client: %s\n", response);
     printf("Shutting down socket...\n");
     socket_shutdown(&socket_client, SHUT_RDWR);
     socket_close(&socket_client);
