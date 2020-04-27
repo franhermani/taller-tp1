@@ -11,7 +11,7 @@ typedef struct {
     char *data_type;        // 3rd byte
     char *end;              // 4th byte (always '00')
     uint32_t length;        // 5th to 8th byte
-    char *name;           // 8th to <8 + length> byte
+    char *name;             // 8th to <8 + length> byte
 } param_t;
 
 typedef struct {
@@ -20,7 +20,7 @@ typedef struct {
     char *data_type;        // 3rd byte (always 'g')
     char *end;              // 4th byte (always '00')
     uint8_t params_quant;   // 5th byte
-    char *params_types;      // 6th to <6 + params_quant> byte
+    char *params_types;     // 6th to <6 + params_quant> byte
     char *end2;             // <6 + params_quant + 1> byte (always '00')
 } firm_t;
 
@@ -45,7 +45,7 @@ typedef struct {
 
 typedef struct {
     uint32_t length;        // 1st to 4th byte
-    char *name;           // 5th to <5 + length> byte
+    char *name;             // 5th to <5 + length> byte
 } body_param_t;
 
 typedef struct {

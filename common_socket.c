@@ -24,10 +24,10 @@ int socket_create(socket_t *self, const char *host, const char *port) {
     self->hints.ai_socktype = SOCK_STREAM;    // TCP
     self->hints.ai_flags = self->is_server ? AI_PASSIVE : 0;
 
-    return socket_resolve_addr(self, host, port);
+    return _socket_resolve_addr(self, host, port);
 }
 
-int socket_resolve_addr(socket_t *self, const char *host, const char *port) {
+int _socket_resolve_addr(socket_t *self, const char *host, const char *port) {
     struct addrinfo *ai_list, *ptr;
 
     // Obtains addresses according to the given 'host' and 'port', applying
@@ -48,10 +48,10 @@ int socket_resolve_addr(socket_t *self, const char *host, const char *port) {
         }
         self->sd = sd;
         if (self->is_server) {
-            if (socket_bind(self, ptr->ai_addr, ptr->ai_addrlen) == OK)
+            if (_socket_bind(self, ptr->ai_addr, ptr->ai_addrlen) == OK)
                 break;
         } else {
-            if (socket_connect(self, ptr->ai_addr, ptr->ai_addrlen) == OK)
+            if (_socket_connect(self, ptr->ai_addr, ptr->ai_addrlen) == OK)
                 break;
         }
     }
@@ -64,7 +64,7 @@ int socket_resolve_addr(socket_t *self, const char *host, const char *port) {
     return OK;
 }
 
-int socket_bind(socket_t *self, struct sockaddr *addr, socklen_t len) {
+int _socket_bind(socket_t *self, struct sockaddr *addr, socklen_t len) {
     int status;
 
     // Configures socket to reuse the address in case the port is in TIME WAIT
@@ -107,7 +107,7 @@ int socket_accept(socket_t *self, socket_t *accepted_socket) {
     return OK;
 }
 
-int socket_connect(socket_t *self, struct sockaddr *addr, socklen_t len) {
+int _socket_connect(socket_t *self, struct sockaddr *addr, socklen_t len) {
     int status = connect(self->sd, addr, len);
 
     if (status == -1) {
@@ -163,7 +163,7 @@ int socket_receive(socket_t *self, char *buffer, size_t length) {
             tot_bytes_recv += bytes_recv;
         }
     }
-    buffer[tot_bytes_recv+1] = '\0';
+    buffer[tot_bytes_recv] = '\0';
 
     if (socket_error) {
         socket_shutdown(self, SHUT_RDWR);
@@ -180,9 +180,9 @@ void socket_shutdown(socket_t *self, int channel) {
 void socket_close(socket_t *self) {
     close(self->sd);
     self->sd = -1;
-    socket_destroy(self);
+    _socket_destroy(self);
 }
 
-void socket_destroy(socket_t *self) {
+void _socket_destroy(socket_t *self) {
     // Do nothing
 }
