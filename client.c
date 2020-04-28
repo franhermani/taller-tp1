@@ -1,44 +1,26 @@
 #include "common_socket.h"
+#include "client_parser.h"
 #include <stdio.h>
 
 #define OK 0
 #define ERROR -1
 #define RESPONSE_MAX_LEN 1024
-#define BUF_FILE_MAX_LEN 32
 
 int main(int argc, char *argv[]) {
     socket_t socket_client;
-    FILE *fd;
+    parser_t parser;
+
     const char *host = argv[1];
     const char *port = argv[2];
-
-    // TODO: el 3er parametro va a ser input_file
     // TODO: si no se especifica, leer de entrada estandar
     const char *file_path = argv[3];
-    char file_buffer[BUF_FILE_MAX_LEN];
+
+    parser_create(&parser, file_path);
+    parser_parse_input_file(&parser);
 
     // TODO: eliminar esto
     const char *request = "Hola mundo";
-
     char response[RESPONSE_MAX_LEN];
-
-    if (! (fd = fopen(file_path, "r"))) {
-        printf("Error opening file\n");
-        return ERROR;
-    }
-    int i, s;
-    while (! feof(fd)) {
-        i = 0;
-        while (i < sizeof(file_buffer)) {
-            s = fread(&file_buffer[i], sizeof(char), 1, fd);
-            if (file_buffer[i] == '\n' || s == 0) break;
-            i += 1;
-        }
-        file_buffer[i] = '\0';
-        memset(&file_buffer, 0, sizeof(file_buffer));
-    }
-
-    fclose(fd);
 
     printf("Opening socket...\n");
     if (socket_create(&socket_client, host, port) == ERROR)
