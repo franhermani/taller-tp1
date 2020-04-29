@@ -57,4 +57,18 @@ typedef struct {
     body_t *body;
 } dbus_t;
 
+int dbus_create(dbus_t *self);
+
+int dbus_parse_line(dbus_t *self, char *line, const char *delim);
+
+int dbus_parse_destiny(dbus_t *self, char *destiny);
+
+int dbus_parse_path(dbus_t *self, char *path);
+
+int dbus_parse_interface(dbus_t *self, char *interface);
+
+int dbus_parse_method(dbus_t *self, char *method);
+
+int dbus_destroy(dbus_t *self);
+
 #endif // DBUS_H
