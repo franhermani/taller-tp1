@@ -15,6 +15,17 @@
 #define ERROR -1
 #define MAX_LISTEN_QUEUE_LEN 1
 
+/* Private methods */
+
+static int socket_destroy(socket_t *self);
+
+// Obtains addresses according to the given 'host' and 'port' and selects
+// the first available address
+// Returns 0 if OK or error code
+static int socket_resolve_addr(socket_t *self, const char *host, const char *port);
+
+/* Public methods */
+
 int socket_create(socket_t *self, const char *host, const char *port) {
     self->sd = -1;
     self->is_server = (host == 0);
@@ -24,34 +35,29 @@ int socket_create(socket_t *self, const char *host, const char *port) {
     self->hints.ai_socktype = SOCK_STREAM;    // TCP
     self->hints.ai_flags = self->is_server ? AI_PASSIVE : 0;
 
-    return _socket_resolve_addr(self, host, port);
+    return socket_resolve_addr(self, host, port);
 }
 
-int _socket_resolve_addr(socket_t *self, const char *host, const char *port) {
+static int socket_resolve_addr(socket_t *self, const char *host, const char *port) {
     struct addrinfo *ai_list, *ptr;
+    int sd, s;
 
     // Obtains addresses according to the given 'host' and 'port', applying
     // the filters in 'hints' and saves the results in 'ai_list'
-    int status = getaddrinfo(host, port, &self->hints, &ai_list);
-
-    // Uses gai_strerror to translate the error code
-    if (status != 0) {
-        printf("Error in getaddrinfo: %s\n", gai_strerror(status));
+    if ((s = getaddrinfo(host, port, &self->hints, &ai_list)) != 0) {
+        printf("Error in getaddrinfo: %s\n", gai_strerror(s));
         return ERROR;
     }
-
-    // Iterates the results list and selects the first available address
     for (ptr = ai_list; ptr != NULL; ptr = ptr->ai_next) {
-        int sd = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol);
-        if (sd == -1) {
-            continue;
-        }
+        sd = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol);
+        if (sd == -1) continue;
+
         self->sd = sd;
         if (self->is_server) {
-            if (_socket_bind(self, ptr->ai_addr, ptr->ai_addrlen) == OK)
+            if (socket_bind(self, ptr->ai_addr, ptr->ai_addrlen) == OK)
                 break;
         } else {
-            if (_socket_connect(self, ptr->ai_addr, ptr->ai_addrlen) == OK)
+            if (socket_connect(self, ptr->ai_addr, ptr->ai_addrlen) == OK)
                 break;
         }
     }
@@ -64,7 +70,7 @@ int _socket_resolve_addr(socket_t *self, const char *host, const char *port) {
     return OK;
 }
 
-int _socket_bind(socket_t *self, struct sockaddr *addr, socklen_t len) {
+int socket_bind(socket_t *self, struct sockaddr *addr, socklen_t len) {
     int status;
 
     // Configures socket to reuse the address in case the port is in TIME WAIT
@@ -107,7 +113,7 @@ int socket_accept(socket_t *self, socket_t *accepted_socket) {
     return OK;
 }
 
-int _socket_connect(socket_t *self, struct sockaddr *addr, socklen_t len) {
+int socket_connect(socket_t *self, struct sockaddr *addr, socklen_t len) {
     int status = connect(self->sd, addr, len);
 
     if (status == -1) {
@@ -142,7 +148,7 @@ int socket_send(socket_t *self, const char *buffer, size_t length) {
         socket_close(self);
         return ERROR;
     }
-    return OK;
+    return tot_bytes_sent;
 }
 
 int socket_receive(socket_t *self, char *buffer, size_t length) {
@@ -173,16 +179,18 @@ int socket_receive(socket_t *self, char *buffer, size_t length) {
     return tot_bytes_recv;
 }
 
-void socket_shutdown(socket_t *self, int channel) {
-    shutdown(self->sd, channel);
+int socket_shutdown(socket_t *self, int channel) {
+    if (! shutdown(self->sd, channel)) return ERROR;
+    return OK;
 }
 
-void socket_close(socket_t *self) {
-    close(self->sd);
+int socket_close(socket_t *self) {
+    if (! close(self->sd)) return ERROR;
     self->sd = -1;
-    _socket_destroy(self);
+    socket_destroy(self);
+    return OK;
 }
 
-void _socket_destroy(socket_t *self) {
-    // Do nothing
+static int socket_destroy(socket_t *self) {
+    return OK;
 }

@@ -15,17 +15,13 @@ typedef struct {
     bool is_server;         // Server or Client
 } socket_t;
 
-// Creates a socket
+// Creates a socket with the given 'host' and 'port' and binds (if server)
+// or connects (if client) to the first available address
 int socket_create(socket_t *self, const char *host, const char *port);
-
-// Obtains addresses according to the given 'host' and 'port' and selects
-// the first available address
-// Returns 0 if OK or error code
-int _socket_resolve_addr(socket_t *self, const char *host, const char *port);
 
 // [Server only] Associates a socket to a given process
 // Returns 0 if OK or error code
-int _socket_bind(socket_t *self, struct sockaddr *addr, socklen_t len);
+int socket_bind(socket_t *self, struct sockaddr *addr, socklen_t len);
 
 // [Server only] Listens to incoming sockets connections and
 // sends them to the queue
@@ -39,7 +35,7 @@ int socket_accept(socket_t *self, socket_t *accepted_socket);
 
 // [Client only] Tries to connect a client socket to a server one
 // Returns 0 if OK or error code
-int _socket_connect(socket_t *self, struct sockaddr *addr, socklen_t len);
+int socket_connect(socket_t *self, struct sockaddr *addr, socklen_t len);
 
 // Tries to send 'length' bytes from 'buffer' to another socket
 // Returns number of bytes sent or error code
@@ -50,13 +46,12 @@ int socket_send(socket_t *self, const char *buffer, size_t length);
 // Returns number of bytes received or error code
 int socket_receive(socket_t *self, char *buffer, size_t length);
 
-// Shuts down a socket given channel (R, W or RW)
-void socket_shutdown(socket_t *self, int channel);
+// Shuts down a socket given channel (SHUT_WR, SHUT_RD or SHUT_RDWR)
+// Returns 0 if OK or error code
+int socket_shutdown(socket_t *self, int channel);
 
 // Closes a socket
-void socket_close(socket_t *self);
-
-// Destroys a socket
-void _socket_destroy(socket_t *self);
+// Returns 0 if OK or error code
+int socket_close(socket_t *self);
 
 #endif // SOCKET_H
