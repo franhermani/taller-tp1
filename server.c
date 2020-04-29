@@ -39,4 +39,3 @@ int main(int argc, char *argv[]) {
     socket_close(&socket_acceptor);
     return 0;
 }
-
