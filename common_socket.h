@@ -19,9 +19,7 @@ typedef struct {
 // or connects (if client) to the first available address
 int socket_create(socket_t *self, const char *host, const char *port);
 
-// [Server only] Associates a socket to a given process
-// Returns 0 if OK or error code
-int socket_bind(socket_t *self, struct sockaddr *addr, socklen_t len);
+
 
 // [Server only] Listens to incoming sockets connections and
 // sends them to the queue
@@ -33,9 +31,7 @@ int socket_listen(socket_t *self);
 // Returns a new socket to manage the new client-server connection
 int socket_accept(socket_t *self, socket_t *accepted_socket);
 
-// [Client only] Tries to connect a client socket to a server one
-// Returns 0 if OK or error code
-int socket_connect(socket_t *self, struct sockaddr *addr, socklen_t len);
+
 
 // Tries to send 'length' bytes from 'buffer' to another socket
 // Returns number of bytes sent or error code

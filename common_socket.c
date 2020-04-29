@@ -15,16 +15,24 @@
 #define ERROR -1
 #define MAX_LISTEN_QUEUE_LEN 1
 
-/* Private methods */
-
 static int socket_destroy(socket_t *self);
 
 // Obtains addresses according to the given 'host' and 'port' and selects
 // the first available address
 // Returns 0 if OK or error code
-static int socket_resolve_addr(socket_t *self, const char *host, const char *port);
+static int socket_resolve_addr(socket_t *self, const char *host,
+                               const char *port);
 
-/* Public methods */
+// [Server only] Associates a socket to a given process
+// Returns 0 if OK or error code
+static int socket_bind(socket_t *self, struct sockaddr *addr,
+                       socklen_t len);
+
+// [Client only] Tries to connect a client socket to a server one
+// Returns 0 if OK or error code
+static int socket_connect(socket_t *self, struct sockaddr *addr,
+                          socklen_t len);
+
 
 int socket_create(socket_t *self, const char *host, const char *port) {
     self->sd = -1;
@@ -38,14 +46,15 @@ int socket_create(socket_t *self, const char *host, const char *port) {
     return socket_resolve_addr(self, host, port);
 }
 
-static int socket_resolve_addr(socket_t *self, const char *host, const char *port) {
+static int socket_resolve_addr(socket_t *self, const char *host,
+                               const char *port) {
     struct addrinfo *ai_list, *ptr;
-    int sd, s;
+    int sd, status;
 
     // Obtains addresses according to the given 'host' and 'port', applying
     // the filters in 'hints' and saves the results in 'ai_list'
-    if ((s = getaddrinfo(host, port, &self->hints, &ai_list)) != 0) {
-        printf("Error in getaddrinfo: %s\n", gai_strerror(s));
+    if ((status = getaddrinfo(host, port, &self->hints, &ai_list)) != 0) {
+        printf("Error in getaddrinfo: %s\n", gai_strerror(status));
         return ERROR;
     }
     for (ptr = ai_list; ptr != NULL; ptr = ptr->ai_next) {
@@ -70,21 +79,28 @@ static int socket_resolve_addr(socket_t *self, const char *host, const char *por
     return OK;
 }
 
-int socket_bind(socket_t *self, struct sockaddr *addr, socklen_t len) {
-    int status;
+static int socket_bind(socket_t *self, struct sockaddr *addr,
+                       socklen_t len) {
+    int val = 1;
 
     // Configures socket to reuse the address in case the port is in TIME WAIT
-    int val = 1;
-    status = setsockopt(self->sd, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val));
-
-    if (status == -1) {
+    if (setsockopt(self->sd, SOL_SOCKET, SO_REUSEADDR,
+                   &val, sizeof(val)) == -1) {
         socket_close(self);
         printf("Error: %s\n", strerror(errno));
         return ERROR;
     }
-    status = bind(self->sd, addr, len);
+    if (bind(self->sd, addr, len) == -1) {
+        socket_close(self);
+        printf("Error: %s\n", strerror(errno));
+        return ERROR;
+    }
+    return OK;
+}
 
-    if (status == -1) {
+static int socket_connect(socket_t *self, struct sockaddr *addr,
+                          socklen_t len) {
+    if (connect(self->sd, addr, len) == -1) {
         socket_close(self);
         printf("Error: %s\n", strerror(errno));
         return ERROR;
@@ -93,9 +109,7 @@ int socket_bind(socket_t *self, struct sockaddr *addr, socklen_t len) {
 }
 
 int socket_listen(socket_t *self) {
-    int status = listen(self->sd, MAX_LISTEN_QUEUE_LEN);
-
-    if (status == -1) {
+    if (listen(self->sd, MAX_LISTEN_QUEUE_LEN) == -1) {
         socket_close(self);
         printf("Error: %s\n", strerror(errno));
         return ERROR;
@@ -113,22 +127,9 @@ int socket_accept(socket_t *self, socket_t *accepted_socket) {
     return OK;
 }
 
-int socket_connect(socket_t *self, struct sockaddr *addr, socklen_t len) {
-    int status = connect(self->sd, addr, len);
-
-    if (status == -1) {
-        socket_close(self);
-        printf("Error: %s\n", strerror(errno));
-        return ERROR;
-    }
-    return OK;
-}
-
 int socket_send(socket_t *self, const char *buffer, size_t length) {
-    int tot_bytes_sent = 0;
-    int bytes_sent = 0;
-    bool socket_closed = false;
-    bool socket_error = false;
+    int tot_bytes_sent = 0, bytes_sent = 0;
+    bool socket_closed = false, socket_error = false;
 
     while (tot_bytes_sent < length && (! socket_closed) && (! socket_error)) {
         bytes_sent = send(self->sd, &buffer[tot_bytes_sent],
@@ -152,10 +153,8 @@ int socket_send(socket_t *self, const char *buffer, size_t length) {
 }
 
 int socket_receive(socket_t *self, char *buffer, size_t length) {
-    int tot_bytes_recv = 0;
-    int bytes_recv = 0;
-    bool socket_closed = false;
-    bool socket_error = false;
+    int tot_bytes_recv = 0, bytes_recv = 0;
+    bool socket_closed = false, socket_error = false;
 
     while ((!socket_closed) && (!socket_error)) {
         bytes_recv = recv(self->sd, &buffer[tot_bytes_recv],
@@ -169,13 +168,12 @@ int socket_receive(socket_t *self, char *buffer, size_t length) {
             tot_bytes_recv += bytes_recv;
         }
     }
-    buffer[tot_bytes_recv] = '\0';
-
     if (socket_error) {
         socket_shutdown(self, SHUT_RDWR);
         socket_close(self);
         return ERROR;
     }
+    buffer[tot_bytes_recv] = '\0';
     return tot_bytes_recv;
 }
 
