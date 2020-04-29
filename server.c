@@ -36,6 +36,7 @@ int main(int argc, char *argv[]) {
     socket_shutdown(&socket_client, SHUT_WR);
     printf("Closing socket...\n");
     socket_close(&socket_client);
+    socket_close(&socket_acceptor);
     return 0;
 }
 
