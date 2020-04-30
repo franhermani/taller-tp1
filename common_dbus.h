@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#define MAX_PARAMS  50
+#define MAX_PARAMS  100
 
 typedef struct {
     uint8_t type;             // 1st byte
@@ -61,7 +61,7 @@ typedef struct {
     char *path;
     char *interface;
     char *method;
-    char *method_params;
+    char *firm;
 } dbus_t;
 
 int dbus_create(dbus_t *self);

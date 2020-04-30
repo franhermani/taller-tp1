@@ -4,7 +4,7 @@
 #include "client_dynamic_buffer.h"
 #include "common_dbus.h"
 
-#define BUF_FILE_MAX_LEN 100
+#define BUF_FILE_MAX_LEN 1024
 
 typedef struct {
     const char *file_path;
