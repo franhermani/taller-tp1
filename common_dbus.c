@@ -71,7 +71,7 @@ static int dbus_parse_params(dbus_t *self, char *line) {
 }
 
 static int dbus_build_header(dbus_t *self) {
-    self->msg.header.endianness = "l";
+    self->msg.header.endianness = 'l';
     self->msg.header.type = 0x01;
     self->msg.header.flags = 0x0;
     self->msg.header.version = 0x01;
@@ -99,7 +99,7 @@ static int dbus_build_param_array(dbus_t *self) {
 static int dbus_build_destiny(dbus_t *self) {
     self->msg.header.array.destiny.type = 6;
     self->msg.header.array.destiny.data_quant = 1;
-    self->msg.header.array.destiny.data_type = "s";
+    self->msg.header.array.destiny.data_type = 's';
     self->msg.header.array.destiny.end = 0;
     self->msg.header.array.destiny.length = strlen(self->msg.destiny);
     self->msg.header.array.destiny.name = self->msg.destiny;
@@ -110,7 +110,7 @@ static int dbus_build_destiny(dbus_t *self) {
 static int dbus_build_path(dbus_t *self) {
     self->msg.header.array.path.type = 1;
     self->msg.header.array.path.data_quant = 1;
-    self->msg.header.array.path.data_type = "o";
+    self->msg.header.array.path.data_type = 'o';
     self->msg.header.array.path.end = 0;
     self->msg.header.array.path.length = strlen(self->msg.path);
     self->msg.header.array.path.name = self->msg.path;
@@ -121,7 +121,7 @@ static int dbus_build_path(dbus_t *self) {
 static int dbus_build_interface(dbus_t *self) {
     self->msg.header.array.interface.type = 2;
     self->msg.header.array.interface.data_quant = 1;
-    self->msg.header.array.interface.data_type = "s";
+    self->msg.header.array.interface.data_type = 's';
     self->msg.header.array.interface.end = 0;
     self->msg.header.array.interface.length = strlen(self->msg.interface);
     self->msg.header.array.interface.name = self->msg.interface;
@@ -132,7 +132,7 @@ static int dbus_build_interface(dbus_t *self) {
 static int dbus_build_method(dbus_t *self) {
     self->msg.header.array.method.type = 3;
     self->msg.header.array.method.data_quant = 1;
-    self->msg.header.array.method.data_type = "s";
+    self->msg.header.array.method.data_type = 's';
     self->msg.header.array.method.end = 0;
     self->msg.header.array.method.length = strlen(self->msg.method);
     self->msg.header.array.method.name = self->msg.method;
@@ -143,7 +143,7 @@ static int dbus_build_method(dbus_t *self) {
 static int dbus_build_firm(dbus_t *self) {
     self->msg.header.array.firm.type = 9;
     self->msg.header.array.firm.data_quant = 1;
-    self->msg.header.array.firm.data_type = "g";
+    self->msg.header.array.firm.data_type = 'g';
     self->msg.header.array.firm.end = 0;
     self->msg.header.array.firm.params_quant = dbus_build_params_quant(self);
     self->msg.header.array.firm.params_types = dbus_build_params_types(self);
@@ -172,9 +172,10 @@ static char *dbus_build_params_types(dbus_t *self) {
 }
 
 static int dbus_write_bytes(dbus_t *self) {
-
+    // TODO: armar header
     if (self->msg.firm) {
         // TODO: enviar la firma aca adentro
+        // TODO: armar body
         dbus_destroy_firm_types(self);
     }
     return OK;

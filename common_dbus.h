@@ -8,7 +8,7 @@
 typedef struct {
     uint8_t type;             // 1st byte
     uint8_t data_quant;       // 2nd byte (always '1')
-    char *data_type;        // 3rd byte
+    uint8_t data_type;        // 3rd byte
     uint8_t end;              // 4th byte (always '00')
     uint32_t length;        // 5th to 8th byte
     char *name;             // 8th to <8 + length> byte
@@ -18,7 +18,7 @@ typedef struct {
 typedef struct {
     uint8_t type;             // 1st byte (always '08')
     uint8_t data_quant;       // 2nd byte (always '1')
-    char *data_type;        // 3rd byte (always 'g')
+    uint8_t data_type;        // 3rd byte (always 'g')
     uint8_t end;              // 4th byte (always '00')
     uint8_t params_quant;   // 5th byte
     char *params_types;     // 6th to <6 + params_quant> byte
@@ -35,7 +35,7 @@ typedef struct {
 } array_t;
 
 typedef struct {
-    char *endianness;       // 1st byte (always 'l')
+    uint8_t endianness;       // 1st byte (always 'l')
     uint8_t type;           // 2nd byte (always '0x01')
     uint8_t flags;          // 3rd byte (always '0x0')
     uint8_t version;        // 4th byte (always '0x01')
