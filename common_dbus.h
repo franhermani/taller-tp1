@@ -56,12 +56,16 @@ typedef struct {
 typedef struct {
     header_t header;
     body_t body;
-    uint32_t last_id;
     char *destiny;
     char *path;
     char *interface;
     char *method;
     char *firm;
+} message_t;
+
+typedef struct {
+    uint32_t last_id;
+    message_t msg;
 } dbus_t;
 
 int dbus_create(dbus_t *self);

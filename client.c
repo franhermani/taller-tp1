@@ -28,12 +28,15 @@ int main(int argc, char *argv[]) {
     if (socket_create(&socket_client, host, port) == ERROR) {
         return ERROR;
     }
+
+    // TODO: El socket_send va dentro del while que parsea las lineas
     if (socket_send(&socket_client, request, strlen(request)) == ERROR) {
         return ERROR;
     }
     printf("Sent request to server: %s\n", request);
     socket_shutdown(&socket_client, SHUT_WR);
 
+    // TODO: este tmb va en un while, para recibir todos los OK del server
     if (socket_receive(&socket_client, response, RESPONSE_MAX_LEN) == ERROR)
         return ERROR;
 
