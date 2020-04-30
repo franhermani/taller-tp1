@@ -7,10 +7,7 @@
 #define OK 0
 #define ERROR -1
 
-static int dbus_parse_mandatory_params(dbus_t *self, char *line,
-                                       const char *delim);
-
-static int dbus_parse_optional_param(dbus_t *self, const char *delim);
+static int dbus_parse_params(dbus_t *self, char *line);
 
 static int dbus_build_header(dbus_t *self);
 
@@ -35,40 +32,32 @@ int dbus_create(dbus_t *self) {
 }
 
 int dbus_parse_line(dbus_t *self, char *line) {
-    const char *mandatory_delim = " ", *optional_delim = ",";
-
-    dbus_parse_mandatory_params(self, line, mandatory_delim);
-    dbus_parse_optional_param(self, optional_delim);
-
+    dbus_parse_params(self, line);
     dbus_build_header(self);
     dbus_build_body(self);
     return OK;
 }
 
-static int dbus_parse_mandatory_params(dbus_t *self, char *line,
-                                       const char *delim) {
+static int dbus_parse_params(dbus_t *self, char *line) {
     char *rest = line;
 
-    self->destiny = strtok_r(rest, delim, &rest);
+    self->destiny = strtok_r(rest, " ", &rest);
     if (! self->destiny) return ERROR;
 
-    self->path = strtok_r(rest, delim, &rest);
+    self->path = strtok_r(rest, " ", &rest);
     if (! self->path) return ERROR;
 
-    self->interface = strtok_r(rest, delim, &rest);
+    self->interface = strtok_r(rest, " ", &rest);
     if (! self->interface) return ERROR;
 
-    // TODO: cortarlo en el primer "("
-    self->method = strtok_r(rest, delim, &rest);
+    self->method = strtok_r(rest, " ", &rest);
     if (! self->method) return ERROR;
 
-    return OK;
-}
+    rest = self->method;
+    self->method = strtok_r(rest, "(", &rest);
+    if (! self->method) return ERROR;
 
-static int dbus_parse_optional_param(dbus_t *self, const char *delim) {
-    //int i;
-    //while strtok_r con ","
-
+    self->method_params = strtok_r(rest, ")", &rest);
     return OK;
 }
 

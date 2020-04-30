@@ -61,6 +61,7 @@ typedef struct {
     char *path;
     char *interface;
     char *method;
+    char *method_params;
 } dbus_t;
 
 int dbus_create(dbus_t *self);
