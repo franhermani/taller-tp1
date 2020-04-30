@@ -6,26 +6,27 @@
 #define MAX_PARAMS  50
 
 typedef struct {
-    char *type;             // 1st byte
-    char *data_quant;       // 2nd byte (always '1')
+    uint8_t type;             // 1st byte
+    uint8_t data_quant;       // 2nd byte (always '1')
     char *data_type;        // 3rd byte
-    char *end;              // 4th byte (always '00')
+    uint8_t end;              // 4th byte (always '00')
     uint32_t length;        // 5th to 8th byte
     char *name;             // 8th to <8 + length> byte
+    char *eos;              // End Of String ("\0")
 } param_t;
 
 typedef struct {
-    char *type;             // 1st byte (always '08')
-    char *data_quant;       // 2nd byte (always '1')
+    uint8_t type;             // 1st byte (always '08')
+    uint8_t data_quant;       // 2nd byte (always '1')
     char *data_type;        // 3rd byte (always 'g')
-    char *end;              // 4th byte (always '00')
+    uint8_t end;              // 4th byte (always '00')
     uint8_t params_quant;   // 5th byte
     char *params_types;     // 6th to <6 + params_quant> byte
-    char *end2;             // <6 + params_quant + 1> byte (always '00')
+    uint8_t end2;             // <6 + params_quant + 1> byte (always '00')
 } firm_t;
 
 typedef struct {
-    uint32_t header_length; // 1st to 4th byte
+    uint32_t length;        // 1st to 4th byte
     param_t destiny;        // 06 01 's' 00
     param_t path;           // 01 01 'o' 00
     param_t interface;      // 02 01 's' 00
@@ -35,9 +36,9 @@ typedef struct {
 
 typedef struct {
     char *endianness;       // 1st byte (always 'l')
-    char *type;             // 2nd byte (always '0x01')
-    char *flags;            // 3rd byte (always '0x0')
-    char *version;          // 4th byte (always '0x01')
+    uint8_t type;           // 2nd byte (always '0x01')
+    uint8_t flags;          // 3rd byte (always '0x0')
+    uint8_t version;        // 4th byte (always '0x01')
     uint32_t body_length;   // 5th to 8 byte
     uint32_t id;            // 9th to 12nd byte (starts in '0x0001')
     array_t array;          // 13rd to ??? byte
@@ -53,21 +54,18 @@ typedef struct {
 } body_t;
 
 typedef struct {
-    header_t *header;
-    body_t *body;
+    header_t header;
+    body_t body;
+    uint32_t last_id;
+    char *destiny;
+    char *path;
+    char *interface;
+    char *method;
 } dbus_t;
 
 int dbus_create(dbus_t *self);
 
-int dbus_parse_line(dbus_t *self, char *line, const char *delim);
-
-int dbus_parse_destiny(dbus_t *self, char *destiny);
-
-int dbus_parse_path(dbus_t *self, char *path);
-
-int dbus_parse_interface(dbus_t *self, char *interface);
-
-int dbus_parse_method(dbus_t *self, char *method);
+int dbus_parse_line(dbus_t *self, char *line);
 
 int dbus_destroy(dbus_t *self);
 

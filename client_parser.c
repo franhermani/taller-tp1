@@ -6,12 +6,15 @@
 #define ERROR -1
 
 int parser_create(parser_t *self, const char *file_path) {
+    dbus_t dbus;
+    dbus_create(&dbus);
+
     dynamic_buffer_t *dyn_buf = dynamic_buffer_create();
     if (! dyn_buf) return ERROR;
 
     self->file_path = file_path;
     self->dyn_buf = dyn_buf;
-
+    self->dbus = dbus;
     return OK;
 }
 
@@ -23,8 +26,9 @@ int parser_parse_input_file(parser_t *self) {
     }
 
     int i, s = 1;
-    bool eol;
 
+    /*
+    bool eol;
     while (! feof(fd)) {
         i = 0;
         eol = false;
@@ -34,7 +38,7 @@ int parser_parse_input_file(parser_t *self) {
                 eol = true;
                 break;
             }
-            i += 1;
+            i ++;
         }
         self->stat_buf[i] = '\0';
         if (eol) {
@@ -43,10 +47,29 @@ int parser_parse_input_file(parser_t *self) {
         } else {
             //dynamic_buffer_insert_data(self->dyn_buf, self->stat_buf);
         }
-        printf("Buffer: %s\n", self->stat_buf);
         memset(&self->stat_buf, 0, sizeof(self->stat_buf));
     }
     //dynamic_buffer_destroy(self->dyn_buf);
+    */
+
+    while (! feof(fd)) {
+        i = 0;
+        while (s != 0) {
+            s = fread(&self->stat_buf[i], sizeof(char), 1, fd);
+            if (self->stat_buf[i] == '\n') {
+                self->stat_buf[i] = '\0';
+                dbus_parse_line(&self->dbus, self->stat_buf);
+                break;
+            }
+            i ++;
+        }
+        memset(&self->stat_buf, 0, sizeof(self->stat_buf));
+    }
+
     fclose(fd);
     return OK;
+}
+
+void parser_destroy(parser_t *self) {
+    // Do nothing
 }
