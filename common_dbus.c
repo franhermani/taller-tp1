@@ -30,9 +30,16 @@ static int dbus_build_params_quant(dbus_t *self);
 
 static char *dbus_build_params_types(dbus_t *self);
 
-static int dbus_write_bytes(dbus_t *self);
+static int dbus_write_message(dbus_t *self);
+
+static void dbus_write_header(dbus_t *self);
+
+static void dbus_write_body(dbus_t *self);
 
 static void dbus_destroy_firm_types(dbus_t *self);
+
+static void dbus_destroy_byte_msg(dbus_t *self);
+
 
 int dbus_create(dbus_t *self) {
     self->last_id = 0;
@@ -43,7 +50,7 @@ int dbus_parse_line(dbus_t *self, char *line) {
     dbus_parse_params(self, line);
     dbus_build_header(self);
     dbus_build_body(self);
-    dbus_write_bytes(self);
+    dbus_write_message(self);
     return OK;
 }
 
@@ -72,9 +79,9 @@ static int dbus_parse_params(dbus_t *self, char *line) {
 
 static int dbus_build_header(dbus_t *self) {
     self->msg.header.endianness = 'l';
-    self->msg.header.type = 0x01;
-    self->msg.header.flags = 0x0;
-    self->msg.header.version = 0x01;
+    self->msg.header.type = 1;
+    self->msg.header.flags = 0;
+    self->msg.header.version = 1;
     self->msg.header.body_length = 0;   // To be filled later...
     self->msg.header.id = ++self->last_id;
 
@@ -171,18 +178,58 @@ static char *dbus_build_params_types(dbus_t *self) {
     return params_types;
 }
 
-static int dbus_write_bytes(dbus_t *self) {
-    // TODO: armar header
+static int dbus_write_message(dbus_t *self) {
+    // TODO: usar el TDA dynamic_buffer
+    self->pos = 0;
+    self->byte_msg = malloc(1024 * sizeof(uint8_t));
+    if (! self->byte_msg) return ERROR;
+
+    dbus_write_header(self);
+
     if (self->msg.firm) {
-        // TODO: enviar la firma aca adentro
-        // TODO: armar body
+        dbus_write_body(self);
         dbus_destroy_firm_types(self);
     }
+    dbus_destroy_byte_msg(self);
     return OK;
+}
+
+static void dbus_write_header(dbus_t *self) {
+    self->byte_msg[self->pos] = self->msg.header.endianness;
+    self->byte_msg[++self->pos] = self->msg.header.type;
+    self->byte_msg[++self->pos] = self->msg.header.flags;
+    self->byte_msg[++self->pos] = self->msg.header.version;
+
+    int i;
+    for (i=0; i < 4; i ++)
+        self->byte_msg[++self->pos] = 0;    // To be filled later...
+
+    // TODO: aca meto el entero de 4 bytes en little endian
+    // TODO: armarme una funcion que lo pase a hexa y soporte
+    // TODO: enteros de mas de un byte
+    self->byte_msg[++self->pos] = self->last_id;
+    for (i=0; i < 3; i ++)
+        self->byte_msg[++self->pos] = 0;
+
+    
+}
+
+static void dbus_write_body(dbus_t *self) {
+
 }
 
 static void dbus_destroy_firm_types(dbus_t *self) {
     free(self->msg.header.array.firm.params_types);
+}
+
+static void dbus_destroy_byte_msg(dbus_t *self) {
+    // TODO: eliminar esto cuando termine de debuggear
+    self->byte_msg[++self->pos] = '\0';
+    for (int i=0; i < self->pos; i++)
+        printf("%02X ", self->byte_msg[i]);
+    printf("\n");
+    //
+    free(self->byte_msg);
 }
 
 int dbus_destroy(dbus_t *self) {

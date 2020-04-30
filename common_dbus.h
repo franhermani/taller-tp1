@@ -66,6 +66,8 @@ typedef struct {
 typedef struct {
     uint32_t last_id;
     message_t msg;
+    uint8_t *byte_msg;
+    int pos;
 } dbus_t;
 
 int dbus_create(dbus_t *self);
