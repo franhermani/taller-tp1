@@ -12,23 +12,25 @@ int main(int argc, char *argv[]) {
 
     const char *host = argv[1];
     const char *port = argv[2];
-    // TODO: si no se especifica, leer de entrada estandar
     const char *file_path = argv[3];
+    if (! file_path) return ERROR;
 
     parser_create(&parser, file_path);
     parser_parse_input_file(&parser);
+    // TODO: ver en que momento destruir el parser
+    parser_destroy(&parser);
 
     // TODO: eliminar esto
     const char *request = "Hola mundo";
     char response[RESPONSE_MAX_LEN];
 
     printf("Opening socket...\n");
-    if (socket_create(&socket_client, host, port) == ERROR)
+    if (socket_create(&socket_client, host, port) == ERROR) {
         return ERROR;
-
-    if (socket_send(&socket_client, request, strlen(request)) == ERROR)
+    }
+    if (socket_send(&socket_client, request, strlen(request)) == ERROR) {
         return ERROR;
-
+    }
     printf("Sent request to server: %s\n", request);
     socket_shutdown(&socket_client, SHUT_WR);
 

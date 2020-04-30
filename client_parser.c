@@ -71,5 +71,5 @@ int parser_parse_input_file(parser_t *self) {
 }
 
 void parser_destroy(parser_t *self) {
-    // Do nothing
+    dynamic_buffer_destroy(self->dyn_buf);
 }

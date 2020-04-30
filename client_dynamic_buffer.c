@@ -23,18 +23,18 @@ dynamic_buffer_t* dynamic_buffer_create(void) {
     return buf;
 }
 
-bool dynamic_buffer_insert_data(dynamic_buffer_t *buf, char *s) {
-    if (dynamic_buffer_is_full(buf)) {
-        if (! dynamic_buffer_resize(buf, REDIM * buf->total_size))
+bool dynamic_buffer_insert_data(dynamic_buffer_t *self, char *s) {
+    if (dynamic_buffer_is_full(self)) {
+        if (! dynamic_buffer_resize(self, REDIM * self->total_size))
             return false;
     }
-    buf->data[buf->length] = s;
-    buf->length ++;
+    self->data[self->length] = s;
+    self->length ++;
     return true;
 }
 
-static bool dynamic_buffer_is_full(dynamic_buffer_t *buf) {
-    return (buf->length == buf->total_size);
+static bool dynamic_buffer_is_full(dynamic_buffer_t *self) {
+    return (self->length == self->total_size);
 }
 
 static bool dynamic_buffer_resize(dynamic_buffer_t *buf, size_t new_size) {
@@ -45,15 +45,15 @@ static bool dynamic_buffer_resize(dynamic_buffer_t *buf, size_t new_size) {
     return true;
 }
 
-char** dynamic_buffer_get_data(dynamic_buffer_t *buf) {
-    return buf->data;
+char** dynamic_buffer_get_data(dynamic_buffer_t *self) {
+    return self->data;
 }
 
-void dynamic_buffer_remove_data(dynamic_buffer_t *buf) {
-    buf->data = NULL;
+void dynamic_buffer_remove_data(dynamic_buffer_t *self) {
+    self->data = NULL;
 }
 
-void dynamic_buffer_destroy(dynamic_buffer_t *buf) {
-    free(buf->data);
-    free(buf);
+void dynamic_buffer_destroy(dynamic_buffer_t *self) {
+    free(self->data);
+    free(self);
 }

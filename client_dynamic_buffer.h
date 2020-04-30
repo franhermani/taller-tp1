@@ -12,12 +12,12 @@ typedef struct {
 
 dynamic_buffer_t* dynamic_buffer_create(void);
 
-bool dynamic_buffer_insert_data(dynamic_buffer_t *buf, char *s);
+bool dynamic_buffer_insert_data(dynamic_buffer_t *self, char *s);
 
-char** dynamic_buffer_get_data(dynamic_buffer_t *buf);
+char** dynamic_buffer_get_data(dynamic_buffer_t *self);
 
-void dynamic_buffer_remove_data(dynamic_buffer_t *buf);
+void dynamic_buffer_remove_data(dynamic_buffer_t *self);
 
-void dynamic_buffer_destroy(dynamic_buffer_t *buf);
+void dynamic_buffer_destroy(dynamic_buffer_t *self);
 
 #endif // CLIENT_DYNAMIC_BUFFER_H
