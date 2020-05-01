@@ -11,8 +11,8 @@ typedef struct {
     uint8_t data_type;        // 3rd byte
     uint8_t end;              // 4th byte (always '00')
     uint32_t length;        // 5th to 8th byte
-    char *name;             // 8th to <8 + length> byte
-    char *eos;              // End Of String ("\0")
+    char *value;             // 8th to <8 + length> byte
+    uint8_t end2;              // End Of String ("\0")
 } param_t;
 
 typedef struct {
