@@ -178,12 +178,12 @@ int socket_receive(socket_t *self, char *buffer, size_t length) {
 }
 
 int socket_shutdown(socket_t *self, int channel) {
-    if (! shutdown(self->sd, channel)) return ERROR;
+    if (shutdown(self->sd, channel) == -1) return ERROR;
     return OK;
 }
 
 int socket_close(socket_t *self) {
-    if (! close(self->sd)) return ERROR;
+    if (close(self->sd) == -1) return ERROR;
     self->sd = -1;
     socket_destroy(self);
     return OK;
