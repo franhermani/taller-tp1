@@ -355,11 +355,33 @@ static void dbus_write_firm(dbus_t *self, firm_t firm) {
 }
 
 static void dbus_write_body_length(dbus_t *self) {
-    // TODO: self->msg.header.body_length
+    int body_length_pos = sizeof(self->msg.header.endianness) +
+                          sizeof(self->msg.header.type) +
+                          sizeof(self->msg.header.flags) +
+                          sizeof(self->msg.header.version);
+
+    // TODO: llamar a una funcion que tome un uint32_t y lo escriba en little endian
+    // Longitud del cuerpo
+    self->byte_msg[body_length_pos] = self->msg.header.body_length;
+    for (int i=body_length_pos+1; i < body_length_pos+4; i ++)
+        self->byte_msg[i] = 0;
+    //
 }
 
 static void dbus_write_array_length(dbus_t *self) {
-    // TODO: self->msg.header.array.length
+    int array_length_pos = sizeof(self->msg.header.endianness) +
+                           sizeof(self->msg.header.type) +
+                           sizeof(self->msg.header.flags) +
+                           sizeof(self->msg.header.version) +
+                           sizeof(self->msg.header.body_length) +
+                           sizeof(self->msg.header.id);
+
+    // TODO: llamar a una funcion que tome un uint32_t y lo escriba en little endian
+    // Longitud del array
+    self->byte_msg[array_length_pos] = self->msg.header.array.length;
+    for (int i=array_length_pos+1; i < array_length_pos+4; i ++)
+        self->byte_msg[i] = 0;
+    //
 }
 
 static void dbus_write_padding(dbus_t *self) {
