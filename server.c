@@ -26,7 +26,14 @@ int main(int argc, char *argv[]) {
     if (socket_receive(&socket_client, request, REQUEST_MAX_LEN) == ERROR)
         return ERROR;
 
-    printf("Received request from client: %s\n", request);
+    printf("Received request from client:\n");
+
+    // TODO: eliminar esto cuando termine de debuggear
+    for (int i=0; i < 139; i++)
+        printf("%02X ", request[i]);
+    printf("\n");
+    //
+
     socket_shutdown(&socket_client, SHUT_RD);
 
     if (socket_send(&socket_client, response, strlen(response)) == ERROR)

@@ -62,17 +62,24 @@ typedef struct {
 } message_t;
 
 typedef struct {
-    uint32_t last_id;
-    message_t msg;
-    uint8_t *byte_msg;
+    uint8_t *value;
+    int length;
     int pos;
     int array_last_pos;
+} byte_msg_t;
+
+typedef struct {
+    uint32_t last_id;
+    message_t msg;
+    byte_msg_t byte_msg;
 } dbus_t;
 
 int dbus_create(dbus_t *self);
 
 int dbus_destroy(dbus_t *self);
 
-int dbus_parse_line(dbus_t *self, char *line);
+byte_msg_t dbus_parse_line(dbus_t *self, char *line);
+
+void dbus_destroy_byte_msg(dbus_t *self);
 
 #endif // DBUS_H
