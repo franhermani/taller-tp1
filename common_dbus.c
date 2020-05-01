@@ -66,7 +66,7 @@ int dbus_create(dbus_t *self) {
 int dbus_parse_line(dbus_t *self, char *line) {
     dbus_parse_params(self, line);
     dbus_build_header(self);
-    dbus_build_body(self);
+    if (self->msg.firm) dbus_build_body(self);
     dbus_write_message(self);
     return OK;
 }
@@ -106,6 +106,18 @@ static int dbus_build_header(dbus_t *self) {
 }
 
 static int dbus_build_body(dbus_t *self) {
+    //char *rest = self->msg.firm;
+    body_param_t param;
+    body_param_t params[self->msg.header.array.firm.params_quant];
+    self->msg.body.params = params;
+
+    int i;
+    for (i=0; i < self->msg.header.array.firm.params_quant; i++) {
+        param.length = strlen(self->msg.firm);
+        param.value = self->msg.firm;
+        //param.value[param.length] = '\0';
+        self->msg.body.params[i] = param;
+    }
     return OK;
 }
 
@@ -195,29 +207,31 @@ static void dbus_write_header(dbus_t *self) {
 
     // TODO: llamar a una funcion que tome un uint32_t y lo escriba en little endian
     // Longitud del cuerpo
-    int i;
-    for (i=0; i < 4; i ++)
+    for (int i=0; i < 4; i ++)
         self->byte_msg[++self->pos] = 0;    // To be filled later...
+    //
 
     // TODO: llamar a una funcion que tome un uint32_t y lo escriba en little endian
     // ID del mensaje
     self->byte_msg[++self->pos] = self->last_id;
-    for (i=0; i < 3; i ++)
+    for (int i=0; i < 3; i ++)
         self->byte_msg[++self->pos] = 0;
+    //
 
     dbus_write_params_array(self);
 }
 
 static void dbus_write_body(dbus_t *self) {
-
+    //int i, j;
+    //for (i=0; i < self->msg.header.array.firm.params_quant; i++)
 }
 
 static void dbus_write_params_array(dbus_t *self) {
     // TODO: llamar a una funcion que tome un uint32_t y lo escriba en little endian
     // Longitud del array
-    int i;
-    for (i=0; i < 4; i ++)
+    for (int i=0; i < 4; i ++)
         self->byte_msg[++self->pos] = 0;    // To be filled later...
+    //
 
     dbus_write_param(self, self->msg.header.array.destiny);
     dbus_write_param(self, self->msg.header.array.path);
@@ -229,16 +243,45 @@ static void dbus_write_params_array(dbus_t *self) {
 }
 
 static void dbus_write_param(dbus_t *self, param_t param) {
-    // TODO: ...
+    self->byte_msg[++self->pos] = param.type;
+    self->byte_msg[++self->pos] = param.data_quant;
+    self->byte_msg[++self->pos] = param.data_type;
+    self->byte_msg[++self->pos] = param.end;
+
+    // TODO: llamar a una funcion que tome un uint32_t y lo escriba en little endian
+    // Longitud del parametro
+    self->byte_msg[++self->pos] = param.length;
+    for (int i=0; i < 3; i ++)
+        self->byte_msg[++self->pos] = 0;
+    //
+
+    int i;
+    for (i=0; i < param.length; i++)
+        self->byte_msg[++self->pos] = param.value[i];
+
+    self->byte_msg[++self->pos] = param.end2;
     dbus_apply_padding(self);
 }
 
 static void dbus_write_firm(dbus_t *self, firm_t firm) {
+    self->byte_msg[++self->pos] = firm.type;
+    self->byte_msg[++self->pos] = firm.data_quant;
+    self->byte_msg[++self->pos] = firm.data_type;
+    self->byte_msg[++self->pos] = firm.end;
+    self->byte_msg[++self->pos] = firm.params_quant;
 
+    int i;
+    for (i=0; i < firm.params_quant; i++)
+        self->byte_msg[++self->pos] = firm.params_types[i];
+
+    self->byte_msg[++self->pos] = firm.end2;
+    dbus_apply_padding(self);
 }
 
 static void dbus_apply_padding(dbus_t *self) {
-
+    int n = PADDING - (self->pos % PADDING);
+    int i;
+    for (i=0; i < n; i ++) self->byte_msg[++self->pos] = 0;
 }
 
 static void dbus_destroy_firm_types(dbus_t *self) {
@@ -246,11 +289,12 @@ static void dbus_destroy_firm_types(dbus_t *self) {
 }
 
 static void dbus_destroy_byte_msg(dbus_t *self) {
-    // TODO: eliminar esto cuando termine de debuggear
     self->byte_msg[++self->pos] = '\0';
-    for (int i=0; i < self->pos; i++)
-        printf("%02X ", self->byte_msg[i]);
-    printf("\n");
+    // TODO: eliminar esto cuando termine de debuggear
+    //for (int i=0; i < self->pos; i++)
+        //printf("%d: %02X\n", i, self->byte_msg[i]);
+        //printf("%02X ", self->byte_msg[i]);
+    //printf("\n");
     //
     free(self->byte_msg);
 }

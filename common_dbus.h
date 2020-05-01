@@ -46,11 +46,11 @@ typedef struct {
 
 typedef struct {
     uint32_t length;        // 1st to 4th byte
-    char *name;             // 5th to <5 + length> byte
+    char *value;             // 5th to <5 + length> byte
 } body_param_t;
 
 typedef struct {
-    body_param_t params[MAX_PARAMS];
+    body_param_t *params;
 } body_t;
 
 typedef struct {
