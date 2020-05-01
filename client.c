@@ -22,7 +22,6 @@ int main(int argc, char *argv[]) {
 
 int client_create(client_t *self, const char *host, const char *port) {
     if (socket_create(&self->socket, host, port) == ERROR) return ERROR;
-    //if (parser_create(&self->parser, file_path) == ERROR) return ERROR;
     if (dbus_create(&self->dbus) == ERROR) return ERROR;
 
     return OK;
@@ -30,7 +29,6 @@ int client_create(client_t *self, const char *host, const char *port) {
 
 int client_destroy(client_t *self) {
     dbus_destroy(&self->dbus);
-    //parser_destroy(&self->parser);
     socket_close(&self->socket);
 
     return OK;
@@ -70,7 +68,9 @@ int client_process_input(client_t *self, const char *file_path) {
         memset(&stat_buf, 0, sizeof(stat_buf));
     }
     fclose(fd);
-    socket_shutdown(&self->socket, SHUT_WR);
+
+    if (socket_shutdown(&self->socket, SHUT_WR) == ERROR)
+        return ERROR;
 
     return OK;
 }
@@ -100,8 +100,10 @@ int client_receive(client_t *self) {
     if (socket_receive(&self->socket, response, RESPONSE_MAX_LEN) == ERROR)
         return ERROR;
 
-    printf("Received response from server: %s\n", response);
-    socket_shutdown(&self->socket, SHUT_RD);
+    printf("\nReceived response from server: %s\n", response);
+
+    if (socket_shutdown(&self->socket, SHUT_RD) == ERROR)
+        return ERROR;
 
     return OK;
 }
