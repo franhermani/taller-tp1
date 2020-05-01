@@ -8,15 +8,18 @@
 #define OK 0
 #define ERROR -1
 #define PADDING 8
+#define LATER 255
+
+/* --------------------------------------------------- */
+/* Private methods to fill the structs for one message */
+/* --------------------------------------------------- */
 
 static int dbus_parse_params(dbus_t *self, char *line);
 
-
-/* Methods to fill the structs for one message */
-
 static int dbus_build_header(dbus_t *self);
 
-static int dbus_build_body(dbus_t *self);
+// TODO: arreglar esta funcion
+// static int dbus_build_body(dbus_t *self);
 
 static int dbus_build_param_array(dbus_t *self);
 
@@ -30,8 +33,9 @@ static uint8_t dbus_build_params_quant(char *value);
 
 static char *dbus_build_params_types(uint8_t params_quant);
 
-
-/* Methods to transform the structs into a uint8_t array */
+/* ------------------------------------------------------------- */
+/* Private methods to transform the structs into a uint8_t array */
+/* ------------------------------------------------------------- */
 
 static int dbus_write_message(dbus_t *self);
 
@@ -45,31 +49,42 @@ static void dbus_write_param(dbus_t *self, param_t param);
 
 static void dbus_write_firm(dbus_t *self, firm_t firm);
 
+static void dbus_write_body_length(dbus_t *self);
 
-/* Method to apply padding to the uin8_t array */
+static void dbus_write_array_length(dbus_t *self);
 
-static void dbus_apply_padding(dbus_t *self);
-
-
-/* Methods to destroy */
+static void dbus_write_padding(dbus_t *self);
 
 static void dbus_destroy_firm_types(dbus_t *self);
 
 static void dbus_destroy_byte_msg(dbus_t *self);
 
 
+/* -------------- */
+/* Public methods */
+/* -------------- */
+
 int dbus_create(dbus_t *self) {
     self->last_id = 0;
+    return OK;
+}
+
+int dbus_destroy(dbus_t *self) {
     return OK;
 }
 
 int dbus_parse_line(dbus_t *self, char *line) {
     dbus_parse_params(self, line);
     dbus_build_header(self);
-    if (self->msg.firm) dbus_build_body(self);
+    // TODO: arreglar esta funcion
+    //if (self->msg.firm) dbus_build_body(self);
     dbus_write_message(self);
     return OK;
 }
+
+/* --------------------------------------------------- */
+/* Private methods to fill the structs for one message */
+/* --------------------------------------------------- */
 
 static int dbus_parse_params(dbus_t *self, char *line) {
     char *rest = line;
@@ -99,15 +114,16 @@ static int dbus_build_header(dbus_t *self) {
     self->msg.header.type = 1;
     self->msg.header.flags = 0;
     self->msg.header.version = 1;
-    self->msg.header.body_length = 0;   // To be filled later...
+    self->msg.header.body_length = LATER; // Filled in dbus_write_body
     self->msg.header.id = ++self->last_id;
     dbus_build_param_array(self);
     return OK;
 }
 
 // TODO: revisar esta funcion, tira violacion de segmento
+/*
 static int dbus_build_body(dbus_t *self) {
-    int params_quant = self->msg.header.array.firm.params_quant;
+    uint8_t params_quant = self->msg.header.array.firm.params_quant;
     char *rest = self->msg.firm;
 
     body_param_t param;
@@ -119,15 +135,15 @@ static int dbus_build_body(dbus_t *self) {
     for (i=0; i < params_quant; i++) {
         param.value = strtok_r(rest, ",", &rest);
         param.length = strlen(param.value);
+        param.value[param.length] = '\0';
         self->msg.body.params[i] = param;
-
-        printf("%s\n", self->msg.body.params[i].value);
     }
     return OK;
 }
+*/
 
 static int dbus_build_param_array(dbus_t *self) {
-    self->msg.header.array.length = 0;  // To be filled later...
+    self->msg.header.array.length = LATER; // Filled in dbus_write_header
 
     dbus_build_param(&self->msg.header.array.destiny, 6, 's',
                      self->msg.destiny);
@@ -188,6 +204,10 @@ static char *dbus_build_params_types(uint8_t params_quant) {
     return params_types;
 }
 
+/* ------------------------------------------------------------- */
+/* Private methods to transform the structs into a uint8_t array */
+/* ------------------------------------------------------------- */
+
 static int dbus_write_message(dbus_t *self) {
     // TODO: usar el TDA dynamic_buffer
     self->pos = 0;
@@ -200,6 +220,9 @@ static int dbus_write_message(dbus_t *self) {
         dbus_write_body(self);
         dbus_destroy_firm_types(self);
     }
+
+    dbus_write_body_length(self);
+    dbus_write_array_length(self);
     dbus_destroy_byte_msg(self);
     return OK;
 }
@@ -213,7 +236,7 @@ static void dbus_write_header(dbus_t *self) {
     // TODO: llamar a una funcion que tome un uint32_t y lo escriba en little endian
     // Longitud del cuerpo
     for (int i=0; i < 4; i ++)
-        self->byte_msg[++self->pos] = 0;    // To be filled later...
+        self->byte_msg[++self->pos] = LATER; // Filled in dbus_write_body_length
     //
 
     // TODO: llamar a una funcion que tome un uint32_t y lo escriba en little endian
@@ -222,12 +245,17 @@ static void dbus_write_header(dbus_t *self) {
     for (int i=0; i < 3; i ++)
         self->byte_msg[++self->pos] = 0;
     //
+    int prev_pos = self->pos;
 
     dbus_write_params_array(self);
+
+    self->msg.header.array.length = self->array_last_pos - prev_pos;
 }
 
+// TODO: llamar a esta funcion cuando arregle dbus_build_body
+/*
 static void dbus_write_body(dbus_t *self) {
-    int i, j;
+    int i;
     for (i=0; i < self->msg.header.array.firm.params_quant; i++) {
         // TODO: llamar a una funcion que tome un uint32_t y lo escriba en little endian
         // Longitud del parametro de la firma
@@ -239,14 +267,38 @@ static void dbus_write_body(dbus_t *self) {
         for (j=0; j < self->msg.body.params[i].length; j++)
             self->byte_msg[++self->pos] = self->msg.body.params[i].value[j];
     }
+}
+*/
 
+static void dbus_write_body(dbus_t *self) {
+    uint8_t param_length;
+    int i, prev_pos = self->pos;
+    char *param;
+    char *rest = self->msg.firm;
+
+    while ((param = strtok_r(rest, ",", &rest))) {
+        param_length = strlen(param);
+
+        // TODO: llamar a una funcion que tome un uint32_t y lo escriba en little endian
+        // Longitud del parametro
+        self->byte_msg[++self->pos] = param_length;
+        for (i=0; i < 3; i ++)
+            self->byte_msg[++self->pos] = 0;
+        //
+
+        for (i=0; i < param_length; i ++)
+            self->byte_msg[++self->pos] = param[i];
+
+        self->byte_msg[++self->pos] = 0;
+    }
+    self->msg.header.body_length = self->pos - prev_pos;
 }
 
 static void dbus_write_params_array(dbus_t *self) {
     // TODO: llamar a una funcion que tome un uint32_t y lo escriba en little endian
     // Longitud del array
     for (int i=0; i < 4; i ++)
-        self->byte_msg[++self->pos] = 0;    // To be filled later...
+        self->byte_msg[++self->pos] = LATER; // Filled in dbus_write_array_length
     //
 
     dbus_write_param(self, self->msg.header.array.destiny);
@@ -276,7 +328,11 @@ static void dbus_write_param(dbus_t *self, param_t param) {
         self->byte_msg[++self->pos] = param.value[i];
 
     self->byte_msg[++self->pos] = param.end2;
-    dbus_apply_padding(self);
+
+    // Stores the final position of the array (doesn't include last padding)
+    self->array_last_pos = self->pos;
+
+    dbus_write_padding(self);
 }
 
 static void dbus_write_firm(dbus_t *self, firm_t firm) {
@@ -291,11 +347,23 @@ static void dbus_write_firm(dbus_t *self, firm_t firm) {
         self->byte_msg[++self->pos] = firm.params_types[i];
 
     self->byte_msg[++self->pos] = firm.end2;
-    dbus_apply_padding(self);
+
+    // Stores the final position of the array (doesn't include last padding)
+    self->array_last_pos = self->pos;
+
+    dbus_write_padding(self);
 }
 
-static void dbus_apply_padding(dbus_t *self) {
-    int n = PADDING - (self->pos % PADDING);
+static void dbus_write_body_length(dbus_t *self) {
+    // TODO: self->msg.header.body_length
+}
+
+static void dbus_write_array_length(dbus_t *self) {
+    // TODO: self->msg.header.array.length
+}
+
+static void dbus_write_padding(dbus_t *self) {
+    int n = PADDING - (self->pos % PADDING) - 1;
     int i;
     for (i=0; i < n; i ++) self->byte_msg[++self->pos] = 0;
 }
@@ -307,14 +375,10 @@ static void dbus_destroy_firm_types(dbus_t *self) {
 static void dbus_destroy_byte_msg(dbus_t *self) {
     self->byte_msg[++self->pos] = '\0';
     // TODO: eliminar esto cuando termine de debuggear
-    for (int i=0; i < self->pos; i++)
+    //for (int i=0; i < self->pos; i++)
         //printf("%d: %02X\n", i, self->byte_msg[i]);
-        printf("%02X ", self->byte_msg[i]);
-    printf("\n");
+        //printf("%02X ", self->byte_msg[i]);
+    //printf("\n");
     //
     free(self->byte_msg);
-}
-
-int dbus_destroy(dbus_t *self) {
-    return OK;
 }
