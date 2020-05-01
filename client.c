@@ -1,5 +1,4 @@
-#include "common_socket.h"
-#include "client_parser.h"
+#include "client.h"
 #include <stdio.h>
 
 #define OK 0
@@ -7,42 +6,66 @@
 #define RESPONSE_MAX_LEN 1024
 
 int main(int argc, char *argv[]) {
-    socket_t socket_client;
-    parser_t parser;
+    client_t client;
 
-    const char *host = argv[1];
-    const char *port = argv[2];
-    const char *file_path = argv[3];
-    if (! file_path) return ERROR;
+    if (client_create(&client, argv) == ERROR) return ERROR;
+    //if (client_read_file(&client) == ERROR) return ERROR;
+    if (client_send(&client) == ERROR) return ERROR;
+    if (client_receive(&client) == ERROR) return ERROR;
 
-    parser_create(&parser, file_path);
-    parser_parse_input_file(&parser);
-    // TODO: ver en que momento destruir el parser
-    parser_destroy(&parser);
+    client_destroy(&client);
 
+    return 0;
+}
+
+int client_create(client_t *self, char *argv[]) {
+    const char *host = argv[1], *port = argv[2], *file_path = argv[3];
+    //if (! file_path) return ERROR;
+
+    if (socket_create(&self->socket, host, port) == ERROR) return ERROR;
+    if (parser_create(&self->parser, file_path) == ERROR) return ERROR;
+    if (dbus_create(&self->dbus) == ERROR) return ERROR;
+
+    return OK;
+}
+
+int client_destroy(client_t *self) {
+    dbus_destroy(&self->dbus);
+    parser_destroy(&self->parser);
+    socket_close(&self->socket);
+
+    return OK;
+}
+
+int client_read_file(client_t *self) {
+    if (parser_parse_input_file(&self->parser) == ERROR) return ERROR;
+
+    return OK;
+}
+
+int client_send(client_t *self) {
     // TODO: eliminar esto
     const char *request = "Hola mundo";
-    char response[RESPONSE_MAX_LEN];
-
-    printf("Opening socket...\n");
-    if (socket_create(&socket_client, host, port) == ERROR) {
-        return ERROR;
-    }
 
     // TODO: El socket_send va dentro del while que parsea las lineas
-    if (socket_send(&socket_client, request, strlen(request)) == ERROR) {
+    if (socket_send(&self->socket, request, strlen(request)) == ERROR) {
         return ERROR;
     }
     printf("Sent request to server: %s\n", request);
-    socket_shutdown(&socket_client, SHUT_WR);
+    socket_shutdown(&self->socket, SHUT_WR);
+
+    return OK;
+}
+
+int client_receive(client_t *self) {
+    char response[RESPONSE_MAX_LEN];
 
     // TODO: este tmb va en un while, para recibir todos los OK del server
-    if (socket_receive(&socket_client, response, RESPONSE_MAX_LEN) == ERROR)
+    if (socket_receive(&self->socket, response, RESPONSE_MAX_LEN) == ERROR)
         return ERROR;
 
     printf("Received response from server: %s\n", response);
-    socket_shutdown(&socket_client, SHUT_RD);
-    printf("Closing socket...\n");
-    socket_close(&socket_client);
-    return 0;
+    socket_shutdown(&self->socket, SHUT_RD);
+
+    return OK;
 }
