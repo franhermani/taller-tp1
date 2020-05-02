@@ -64,19 +64,23 @@ int server_receive_and_send(server_t *self) {
 }
 
 int server_receive(server_t *self, char *first_req) {
-    int array_length = dbus_get_array_length(&self->dbus, first_req) - sizeof(int);
-    int body_length = dbus_get_body_length(&self->dbus, first_req);
+    int ARRAY_SIZE = dbus_get_array_length(&self->dbus, first_req);
+    int BODY_SIZE = dbus_get_body_length(&self->dbus, first_req);
 
-    char array_req[array_length];
-    char body_req[body_length];
+    // Array length already included in first FIRST_LEN bytes
+    ARRAY_SIZE -= sizeof(int);
 
-    if (socket_receive(&self->socket_client, array_req, array_length) == ERROR)
+    char array_req[ARRAY_SIZE];
+    char body_req[BODY_SIZE];
+
+    if (socket_receive(&self->socket_client, array_req, ARRAY_SIZE) == ERROR)
         return ERROR;
 
-    if (socket_receive(&self->socket_client, body_req, body_length) == ERROR)
+    if (socket_receive(&self->socket_client, body_req, BODY_SIZE) == ERROR)
         return ERROR;
 
     // TODO: eliminar esto cuando termine de debuggear
+    /*
     //printf("FIRST BYTES\n");
     for (int i=0; i < FIRST_LEN; i++)
         printf("%02X ", first_req[i]);
@@ -93,9 +97,11 @@ int server_receive(server_t *self, char *first_req) {
     //printf("\n\n");
     printf("\n");
     //
+    */
 
     // TODO: aplico protocolo a array_req y body_req y guardo todo en self->dbus
-    // ...
+    dbus_build_array(&self->dbus, array_req);
+    dbus_build_body(&self->dbus, body_req);
 
     memset(&array_req, 0, sizeof(array_req));
     memset(&body_req, 0, sizeof(body_req));

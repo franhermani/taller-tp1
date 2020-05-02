@@ -19,7 +19,7 @@ int dbus_destroy(dbus_t *self) {
     return OK;
 }
 
-int dbus_get_array_length(dbus_t *self, char *first_bytes) {
+int dbus_get_array_length(dbus_t *self, char *first_req) {
     int array_length_pos = sizeof(self->msg.header.endianness) +
                            sizeof(self->msg.header.type) +
                            sizeof(self->msg.header.flags) +
@@ -28,15 +28,23 @@ int dbus_get_array_length(dbus_t *self, char *first_bytes) {
                            sizeof(self->msg.header.id);
 
     // TODO: devolver el uint32_t
-    return first_bytes[array_length_pos];
+    return first_req[array_length_pos];
 }
 
-int dbus_get_body_length(dbus_t *self, char *first_bytes) {
+int dbus_get_body_length(dbus_t *self, char *first_req) {
     int body_length_pos = sizeof(self->msg.header.endianness) +
                           sizeof(self->msg.header.type) +
                           sizeof(self->msg.header.flags) +
                           sizeof(self->msg.header.version);
 
     // TODO: devolver el uint32_t
-    return first_bytes[body_length_pos];
+    return first_req[body_length_pos];
+}
+
+void dbus_build_array(dbus_t *self, char *array_req) {
+
+}
+
+void dbus_build_body(dbus_t *self, char *body_req) {
+
 }
