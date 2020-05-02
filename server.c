@@ -54,8 +54,6 @@ int server_send(server_t *self, const char *msg) {
     if (socket_send(&self->socket_client, msg, strlen(msg)) == ERROR)
         return ERROR;
 
-    printf("\nSent response to client: %s\n", msg);
-
     if (socket_shutdown(&self->socket_client, SHUT_WR) == ERROR)
         return ERROR;
 
@@ -68,16 +66,30 @@ int server_receive(server_t *self) {
     if (socket_receive(&self->socket_client, req, REQ_MAX_LEN) == ERROR)
         return ERROR;
 
-    printf("Received request from client:\n");
-
     // TODO: eliminar esto cuando termine de debuggear
-    for (int i=0; i < 139; i++)
-        printf("%02X ", req[i]);
-    printf("\n");
+    //for (int i=0; i < 139; i++)
+    //    printf("%02X ", req[i]);
+    //printf("\n");
     //
+
+    server_print_output(self);
 
     if (socket_shutdown(&self->socket_client, SHUT_RD) == ERROR)
         return ERROR;
 
     return OK;
+}
+
+void server_print_output(server_t *self) {
+    printf("* Id: 0x...\n");
+    printf("* Destino: ...\n");
+    printf("* Path: ...\n");
+    printf("* Interfaz: ...\n");
+    printf("* Método: ...\n");
+
+    // TODO: agregar el if y el for
+    printf("* Parámetros:\n");
+    printf("    * <parámetro1>\n");
+    printf("    * <parámetroN>\n");
+    printf("\n");
 }

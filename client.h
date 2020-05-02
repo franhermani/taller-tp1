@@ -16,4 +16,4 @@ int client_send(client_t *self, byte_msg_t);
 
 int client_receive(client_t *self);
 
-void client_print_output(client_t *self);
+void client_print_output(client_t *self, const char *response);

@@ -3,7 +3,7 @@
 
 #define OK 0
 #define ERROR -1
-#define RESPONSE_MAX_LEN 1024
+#define RESPONSE_LEN 4
 
 int main(int argc, char *argv[]) {
     client_t client;
@@ -11,8 +11,6 @@ int main(int argc, char *argv[]) {
 
     if (client_create(&client, host, port) == ERROR) return ERROR;
     if (client_process_input(&client, file_path) == ERROR) return ERROR;
-
-    // TODO: esto va en un while
     if (client_receive(&client) == ERROR) return ERROR;
 
     client_destroy(&client);
@@ -35,9 +33,6 @@ int client_destroy(client_t *self) {
 }
 
 int client_process_input(client_t *self, const char *file_path) {
-    //if (parser_parse_input_file(&self->parser, &self->dbus) == ERROR)
-    //    return ERROR;
-
     // TODO: contemplar entrada estandar
     if (! file_path) return ERROR;
 
@@ -80,12 +75,10 @@ int client_send(client_t *self, byte_msg_t byte_msg) {
     s = socket_send(&self->socket, (char *) byte_msg.value, byte_msg.length);
     if (s == ERROR) return ERROR;
 
-    printf("Sent request to server:\n");
-
     // TODO: eliminar esto cuando termine de debuggear
-    for (int i=0; i < byte_msg.length; i++)
-        printf("%02X ", byte_msg.value[i]);
-    printf("\n");
+    //for (int i=0; i < byte_msg.length; i++)
+        //printf("%02X ", byte_msg.value[i]);
+    //printf("\n");
     //
 
     dbus_destroy_byte_msg(&self->dbus);
@@ -94,16 +87,19 @@ int client_send(client_t *self, byte_msg_t byte_msg) {
 }
 
 int client_receive(client_t *self) {
-    // TODO: buffer dinamico
-    char response[RESPONSE_MAX_LEN];
+    char response[RESPONSE_LEN];
 
-    if (socket_receive(&self->socket, response, RESPONSE_MAX_LEN) == ERROR)
+    if (socket_receive(&self->socket, response, RESPONSE_LEN) == ERROR)
         return ERROR;
 
-    printf("\nReceived response from server: %s\n", response);
+    client_print_output(self, response);
 
     if (socket_shutdown(&self->socket, SHUT_RD) == ERROR)
         return ERROR;
 
     return OK;
+}
+
+void client_print_output(client_t *client, const char *response) {
+    printf("0x...: %s", response);
 }
