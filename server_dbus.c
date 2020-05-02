@@ -60,9 +60,33 @@ void dbus_build_array(dbus_t *self, char *array_req, size_t array_size) {
         dbus_build_params(self, array_req);
 }
 
-void dbus_build_body(dbus_t *self, char *body_req, size_t body_size) {
+void dbus_build_body(dbus_t *self, char *body_req) {
+    body_t body;
     self->byte_msg.pos = 0;
-    // TODO: ...
+
+    uint8_t PARAMS_QUANT = self->msg.header.array.firm.params_quant;
+    body_param_t params[PARAMS_QUANT];
+    self->msg.body.params = params;
+
+    int i;
+    for (i=0; i < PARAMS_QUANT; i++) {
+        // TODO: devolver el uint32_t
+        uint32_t VALUE_LEN = body_req[self->byte_msg.pos];
+        self->byte_msg.pos += sizeof(body.params->length);
+
+        char value[VALUE_LEN];
+
+        int j;
+        for (j=0; j < VALUE_LEN; j++) {
+            value[j] = body_req[self->byte_msg.pos];
+            self->byte_msg.pos ++;
+        }
+        value[VALUE_LEN] = '\0';
+        self->msg.body.params[i].length = VALUE_LEN;
+        self->msg.body.params[i].value = value;
+
+        self->byte_msg.pos ++;
+    }
 }
 
 static void dbus_build_params(dbus_t *self, char *array_req) {

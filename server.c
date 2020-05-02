@@ -100,7 +100,7 @@ int server_receive(server_t *self, char *first_req) {
     */
 
     dbus_build_array(&self->dbus, array_req, ARRAY_SIZE);
-    dbus_build_body(&self->dbus, body_req, BODY_SIZE);
+    dbus_build_body(&self->dbus, body_req);
 
     memset(&array_req, 0, ARRAY_SIZE);
     memset(&body_req, 0, BODY_SIZE);
@@ -117,16 +117,21 @@ int server_send(server_t *self, const char *msg) {
 
 void server_print_output(server_t *self) {
     printf("* Id: 0x...\n");
-    /*
     printf("* Destino: %s\n", self->dbus.msg.destiny);
     printf("* Path: %s\n", self->dbus.msg.path);
     printf("* Interfaz: %s\n", self->dbus.msg.interface);
     printf("* Método: %s\n", self->dbus.msg.method);
-    */
 
-    // TODO: agregar el if y el for
+    int params_quant = self->dbus.msg.header.array.firm.params_quant;
+    if (params_quant == 0) return;
+
     printf("* Parámetros:\n");
-    printf("    * <parámetro1>\n");
-    printf("    * <parámetroN>\n");
+
+    // TODO: tira violacion de segmento
+    int i;
+    for (i=0; i < params_quant; i++) {
+        char *param = self->dbus.msg.body.params[i].value;
+        printf("    * %s\n", param);
+    }
     printf("\n");
 }

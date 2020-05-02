@@ -14,6 +14,6 @@ int dbus_get_body_length(dbus_t *self, char *first_req);
 
 void dbus_build_array(dbus_t *self, char *array_req, size_t array_size);
 
-void dbus_build_body(dbus_t *self, char *body_req, size_t body_size);
+void dbus_build_body(dbus_t *self, char *body_req);
 
 #endif // SERVER_DBUS_H
