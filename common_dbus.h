@@ -1,5 +1,5 @@
-#ifndef DBUS_H
-#define DBUS_H
+#ifndef COMMON_DBUS_H
+#define COMMON_DBUS_H
 
 #include <stdint.h>
 
@@ -74,4 +74,4 @@ typedef struct {
     byte_msg_t byte_msg;
 } dbus_t;
 
-#endif // DBUS_H
+#endif // COMMON_DBUS_H
