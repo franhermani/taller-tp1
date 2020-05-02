@@ -84,6 +84,28 @@ byte_msg_t dbus_parse_line(dbus_t *self, char *line) {
     return self->byte_msg;
 }
 
+int dbus_get_array_length(dbus_t *self, char *first_bytes) {
+    int array_length_pos = sizeof(self->msg.header.endianness) +
+                           sizeof(self->msg.header.type) +
+                           sizeof(self->msg.header.flags) +
+                           sizeof(self->msg.header.version) +
+                           sizeof(self->msg.header.body_length) +
+                           sizeof(self->msg.header.id);
+
+    // TODO: devolver el uint32_t
+    return first_bytes[array_length_pos];
+}
+
+int dbus_get_body_length(dbus_t *self, char *first_bytes) {
+    int body_length_pos = sizeof(self->msg.header.endianness) +
+                          sizeof(self->msg.header.type) +
+                          sizeof(self->msg.header.flags) +
+                          sizeof(self->msg.header.version);
+
+    // TODO: devolver el uint32_t
+    return first_bytes[body_length_pos];
+}
+
 /* --------------------------------------------------- */
 /* Private methods to fill the structs for one message */
 /* --------------------------------------------------- */

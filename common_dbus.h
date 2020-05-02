@@ -82,4 +82,8 @@ byte_msg_t dbus_parse_line(dbus_t *self, char *line);
 
 void dbus_destroy_byte_msg(dbus_t *self);
 
+int dbus_get_array_length(dbus_t *self, char *first_bytes);
+
+int dbus_get_body_length(dbus_t *self, char *first_bytes);
+
 #endif // DBUS_H
