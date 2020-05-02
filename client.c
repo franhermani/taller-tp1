@@ -92,7 +92,7 @@ int client_receive(client_t *self) {
     if (socket_receive(&self->socket, response, RESPONSE_LEN) == ERROR)
         return ERROR;
 
-    client_print_output(self, response);
+    //client_print_output(self, response);
 
     if (socket_shutdown(&self->socket, SHUT_RD) == ERROR)
         return ERROR;

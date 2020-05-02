@@ -158,7 +158,7 @@ int socket_receive(socket_t *self, char *buffer, size_t length) {
 
     while ((!socket_closed) && (!socket_error)) {
         bytes_recv = recv(self->sd, &buffer[tot_bytes_recv],
-                          length - tot_bytes_recv - 1, 0);
+                          length - tot_bytes_recv, 0);
         if (bytes_recv == -1) {
             printf("Error: %s\n", strerror(errno));
             socket_error = true;

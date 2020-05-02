@@ -65,7 +65,7 @@ int server_receive(server_t *self) {
 
     while (socket_receive(&self->socket_client, first_req, FIRST_LEN) > 0) {
         // TODO: le sobran los 4 bytes de la longitud del array, eso ya lo lei
-        int array_length = dbus_get_array_length(&self->dbus, first_req);
+        int array_length = dbus_get_array_length(&self->dbus, first_req) - sizeof(int);
         int body_length = dbus_get_body_length(&self->dbus, first_req);
 
         char array_req[array_length];
@@ -78,20 +78,21 @@ int server_receive(server_t *self) {
             return ERROR;
 
         // TODO: eliminar esto cuando termine de debuggear
-        printf("FIRST BYTES\n");
+        //printf("FIRST BYTES\n");
         for (int i=0; i < FIRST_LEN; i++)
             printf("%02X ", first_req[i]);
-        printf("\n\n");
+        //printf("\n\n");
 
-        printf("ARRAY\n");
+        //printf("ARRAY\n");
         for (int i=0; i < array_length; i++)
             printf("%02X ", array_req[i]);
-        printf("\n\n");
+        //printf("\n\n");
 
-        printf("BODY\n");
+        //printf("BODY\n");
         for (int i=0; i < body_length; i++)
             printf("%02X ", body_req[i]);
-        printf("\n\n");
+        //printf("\n\n");
+        printf("\n");
         //
 
         memset(&first_req, 0, sizeof(first_req));
