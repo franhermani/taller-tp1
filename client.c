@@ -76,9 +76,9 @@ int client_send(client_t *self, byte_msg_t byte_msg) {
     if (s == ERROR) return ERROR;
 
     // TODO: eliminar esto cuando termine de debuggear
-    //for (int i=0; i < byte_msg.length; i++)
-        //printf("%02X ", byte_msg.value[i]);
-    //printf("\n");
+    for (int i=0; i < byte_msg.length; i++)
+        printf("%02X ", byte_msg.value[i]);
+    printf("\n");
     //
 
     dbus_destroy_byte_msg(&self->dbus);
