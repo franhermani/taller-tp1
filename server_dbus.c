@@ -8,11 +8,14 @@
 #define OK 0
 #define ERROR -1
 #define PADDING 8
-#define LATER 255
 
 static void dbus_build_params(dbus_t *self, char *array_req);
 
-static void dbus_build_param(dbus_t *self, uint8_t type, char *value);
+static void dbus_build_param(dbus_t *self, char *array_req, uint8_t type);
+
+static void dbus_build_firm(dbus_t *self, char *array_req);
+
+static void dbus_advance_padding(dbus_t *self);
 
 
 int dbus_create(dbus_t *self) {
@@ -48,8 +51,12 @@ int dbus_get_body_length(dbus_t *self, char *first_req) {
 
 void dbus_build_array(dbus_t *self, char *array_req, size_t array_size) {
     self->byte_msg.pos = 0;
+    self->msg.destiny = NULL;
+    self->msg.path = NULL;
+    self->msg.interface = NULL;
+    self->msg.method = NULL;
 
-    //while (self->byte_msg.pos < array_size)
+    while (self->byte_msg.pos < array_size)
         dbus_build_params(self, array_req);
 }
 
@@ -59,8 +66,35 @@ void dbus_build_body(dbus_t *self, char *body_req, size_t body_size) {
 }
 
 static void dbus_build_params(dbus_t *self, char *array_req) {
-    param_t param;
     uint8_t type = array_req[self->byte_msg.pos];
+    
+    if (type == 9) {
+        dbus_build_firm(self, array_req);
+    } else {
+        dbus_build_param(self, array_req, type);
+    }
+}
+
+static void dbus_build_firm(dbus_t *self, char *array_req) {
+    firm_t firm;
+
+    self->byte_msg.pos += sizeof(firm.type) +
+                          sizeof(firm.data_quant) +
+                          sizeof(firm.data_type) +
+                          sizeof(firm.end);
+
+    uint8_t params_quant = array_req[self->byte_msg.pos];
+    self->msg.header.array.firm.params_quant = params_quant;
+
+    int i;
+    for (i=0; i < params_quant; i++) self->byte_msg.pos ++;
+
+    self->byte_msg.pos += sizeof(firm.end2);
+    dbus_advance_padding(self);
+}
+
+static void dbus_build_param(dbus_t *self, char *array_req, uint8_t type) {
+    param_t param;
 
     self->byte_msg.pos += sizeof(param.type) +
                           sizeof(param.data_quant) +
@@ -82,13 +116,15 @@ static void dbus_build_params(dbus_t *self, char *array_req) {
     value[length] = '\0';
 
     self->byte_msg.pos += sizeof(param.end2);
+    dbus_advance_padding(self);
 
-    dbus_build_param(self, type, value);
-}
-
-static void dbus_build_param(dbus_t *self, uint8_t type, char *value) {
     if (type == 1) self->msg.path = value;
     if (type == 2) self->msg.interface = value;
     if (type == 3) self->msg.method = value;
     if (type == 6) self->msg.destiny = value;
+}
+
+static void dbus_advance_padding(dbus_t *self) {
+    if (self->byte_msg.pos % PADDING != 0)
+        self->byte_msg.pos += PADDING - (self->byte_msg.pos % PADDING);
 }

@@ -117,10 +117,12 @@ int server_send(server_t *self, const char *msg) {
 
 void server_print_output(server_t *self) {
     printf("* Id: 0x...\n");
+    /*
     printf("* Destino: %s\n", self->dbus.msg.destiny);
-    //printf("* Path: %s\n", self->dbus.msg.path);
-    //printf("* Interfaz: %s\n", self->dbus.msg.interface);
-    //printf("* Método: %s\n", self->dbus.msg.method);
+    printf("* Path: %s\n", self->dbus.msg.path);
+    printf("* Interfaz: %s\n", self->dbus.msg.interface);
+    printf("* Método: %s\n", self->dbus.msg.method);
+    */
 
     // TODO: agregar el if y el for
     printf("* Parámetros:\n");
