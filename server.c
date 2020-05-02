@@ -9,16 +9,11 @@
 int main(int argc, char *argv[]) {
     server_t server;
     const char *host = 0, *port = argv[1];
-    const char *response = "OK\n";
 
     if (server_create(&server, host, port) == ERROR) return ERROR;
     if (server_accept(&server) == ERROR) return ERROR;
-
-    // TODO: esto va en un while
-    if (server_receive(&server) == ERROR) return ERROR;
-    if (server_send(&server, response) == ERROR) return ERROR;
-
-    server_destroy(&server);
+    if (server_receive_and_send(&server) == ERROR) return ERROR;
+    if (server_destroy(&server) == ERROR) return ERROR;
 
     return 0;
 }
@@ -32,13 +27,15 @@ int server_create(server_t *self, const char *host, const char *port) {
 
     if (dbus_create(&self->dbus) == ERROR) return ERROR;
 
+    self->msg = "OK\n";
+
     return OK;
 }
 
 int server_destroy(server_t *self) {
-    dbus_destroy(&self->dbus);
-    socket_close(&self->socket_client);
-    socket_close(&self->socket_acceptor);
+    if (dbus_destroy(&self->dbus) == ERROR) return ERROR;
+    if (socket_close(&self->socket_client)) return ERROR;
+    if (socket_close(&self->socket_acceptor)) return ERROR;
 
     return OK;
 }
@@ -50,58 +47,69 @@ int server_accept(server_t *self) {
     return OK;
 }
 
-int server_send(server_t *self, const char *msg) {
-    if (socket_send(&self->socket_client, msg, strlen(msg)) == ERROR)
+int server_receive(server_t *self, char *first_req) {
+    int array_length = dbus_get_array_length(&self->dbus, first_req) - sizeof(int);
+    int body_length = dbus_get_body_length(&self->dbus, first_req);
+
+    char array_req[array_length];
+    char body_req[body_length];
+
+    if (socket_receive(&self->socket_client, array_req, array_length) == ERROR)
         return ERROR;
 
-    if (socket_shutdown(&self->socket_client, SHUT_WR) == ERROR)
+    if (socket_receive(&self->socket_client, body_req, body_length) == ERROR)
+        return ERROR;
+
+    // TODO: eliminar esto cuando termine de debuggear
+    //printf("FIRST BYTES\n");
+    for (int i=0; i < FIRST_LEN; i++)
+        printf("%02X ", first_req[i]);
+    //printf("\n\n");
+
+    //printf("ARRAY\n");
+    for (int i=0; i < array_length; i++)
+        printf("%02X ", array_req[i]);
+    //printf("\n\n");
+
+    //printf("BODY\n");
+    for (int i=0; i < body_length; i++)
+        printf("%02X ", body_req[i]);
+    //printf("\n\n");
+    printf("\n");
+    //
+
+    // TODO: aplico protocolo a array_req y body_req y guardo todo en self->dbus
+    // ...
+
+    memset(&array_req, 0, sizeof(array_req));
+    memset(&body_req, 0, sizeof(body_req));
+
+    return OK;
+}
+
+int server_send(server_t *self, const char *msg) {
+    if (socket_send(&self->socket_client, msg, strlen(msg)) == ERROR)
         return ERROR;
 
     return OK;
 }
 
-int server_receive(server_t *self) {
+int server_receive_and_send(server_t *self) {
     char first_req[FIRST_LEN];
 
     while (socket_receive(&self->socket_client, first_req, FIRST_LEN) > 0) {
-        int array_length = dbus_get_array_length(&self->dbus, first_req) - sizeof(int);
-        int body_length = dbus_get_body_length(&self->dbus, first_req);
-
-        char array_req[array_length];
-        char body_req[body_length];
-
-        if (socket_receive(&self->socket_client, array_req, array_length) == ERROR)
-            return ERROR;
-
-        if (socket_receive(&self->socket_client, body_req, body_length) == ERROR)
-            return ERROR;
-
-        // TODO: eliminar esto cuando termine de debuggear
-        //printf("FIRST BYTES\n");
-        for (int i=0; i < FIRST_LEN; i++)
-            printf("%02X ", first_req[i]);
-        //printf("\n\n");
-
-        //printf("ARRAY\n");
-        for (int i=0; i < array_length; i++)
-            printf("%02X ", array_req[i]);
-        //printf("\n\n");
-
-        //printf("BODY\n");
-        for (int i=0; i < body_length; i++)
-            printf("%02X ", body_req[i]);
-        //printf("\n\n");
-        printf("\n");
-        //
+        server_receive(self, first_req);
 
         memset(&first_req, 0, sizeof(first_req));
-        memset(&array_req, 0, sizeof(array_req));
-        memset(&body_req, 0, sizeof(body_req));
+
+        //server_print_output(self);
+
+        server_send(self, self->msg);
     }
-
-    //server_print_output(self);
-
     if (socket_shutdown(&self->socket_client, SHUT_RD) == ERROR)
+        return ERROR;
+
+    if (socket_shutdown(&self->socket_client, SHUT_WR) == ERROR)
         return ERROR;
 
     return OK;
