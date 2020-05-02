@@ -67,7 +67,7 @@ void dbus_build_body(dbus_t *self, char *body_req, size_t body_size) {
 
 static void dbus_build_params(dbus_t *self, char *array_req) {
     uint8_t type = array_req[self->byte_msg.pos];
-    
+
     if (type == 9) {
         dbus_build_firm(self, array_req);
     } else {
@@ -78,10 +78,8 @@ static void dbus_build_params(dbus_t *self, char *array_req) {
 static void dbus_build_firm(dbus_t *self, char *array_req) {
     firm_t firm;
 
-    self->byte_msg.pos += sizeof(firm.type) +
-                          sizeof(firm.data_quant) +
-                          sizeof(firm.data_type) +
-                          sizeof(firm.end);
+    self->byte_msg.pos += sizeof(firm.type) + sizeof(firm.data_quant) +
+                          sizeof(firm.data_type) + sizeof(firm.end);
 
     uint8_t params_quant = array_req[self->byte_msg.pos];
     self->msg.header.array.firm.params_quant = params_quant;
@@ -96,24 +94,21 @@ static void dbus_build_firm(dbus_t *self, char *array_req) {
 static void dbus_build_param(dbus_t *self, char *array_req, uint8_t type) {
     param_t param;
 
-    self->byte_msg.pos += sizeof(param.type) +
-                          sizeof(param.data_quant) +
-                          sizeof(param.data_type) +
-                          sizeof(param.end);
+    self->byte_msg.pos += sizeof(param.type) + sizeof(param.data_quant) +
+                          sizeof(param.data_type) + sizeof(param.end);
 
     // TODO: leer uint32_t
-    uint32_t length = array_req[self->byte_msg.pos];
+    uint32_t VALUE_LEN = array_req[self->byte_msg.pos];
+    char value[VALUE_LEN];
 
     self->byte_msg.pos += sizeof(param.length);
 
-    char value[length];
-
     int i;
-    for (i=0; i < length; i++) {
+    for (i=0; i < VALUE_LEN; i++) {
         value[i] = array_req[self->byte_msg.pos];
         self->byte_msg.pos ++;
     }
-    value[length] = '\0';
+    value[VALUE_LEN] = '\0';
 
     self->byte_msg.pos += sizeof(param.end2);
     dbus_advance_padding(self);
