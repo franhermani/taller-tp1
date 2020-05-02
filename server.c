@@ -63,38 +63,40 @@ int server_send(server_t *self, const char *msg) {
 int server_receive(server_t *self) {
     char first_req[FIRST_LEN];
 
-    if (socket_receive(&self->socket_client, first_req, FIRST_LEN) == ERROR)
-        return ERROR;
+    while (socket_receive(&self->socket_client, first_req, FIRST_LEN) > 0) {
+        //int array_length = dbus_get_array_length(&self->dbus, first_req);
+        //int body_length = dbus_get_body_length(&self->dbus, first_req);
 
-    // Parseo req y obtengo la longitud del array y del body
-    //int array_length = dbus_get_array_length(&self->dbus, first_req);
-    //int body_length = dbus_get_body_length(&self->dbus, first_req);
+        int array_length = 19;
+        int body_length = 108;
 
-    int array_length = 19;
-    int body_length = 108;
+        char array_req[array_length];
+        char body_req[body_length];
 
-    char array_req[array_length];
-    char body_req[body_length];
+        if (socket_receive(&self->socket_client, array_req, array_length) == ERROR)
+            return ERROR;
 
-    if (socket_receive(&self->socket_client, array_req, array_length) == ERROR)
-        return ERROR;
+        if (socket_receive(&self->socket_client, body_req, body_length) == ERROR)
+            return ERROR;
 
-    if (socket_receive(&self->socket_client, body_req, body_length) == ERROR)
-        return ERROR;
+        // TODO: eliminar esto cuando termine de debuggear
+        for (int i=0; i < FIRST_LEN; i++)
+            printf("%02X ", first_req[i]);
+        printf("\n");
 
-    // TODO: eliminar esto cuando termine de debuggear
-    for (int i=0; i < FIRST_LEN; i++)
-        printf("%02X ", first_req[i]);
-    printf("\n");
+        for (int i=0; i < array_length; i++)
+            printf("%02X ", array_req[i]);
+        printf("\n");
 
-    for (int i=0; i < array_length; i++)
-        printf("%02X ", array_req[i]);
-    printf("\n");
+        for (int i=0; i < body_length; i++)
+            printf("%02X ", body_req[i]);
+        printf("\n");
+        //
 
-    for (int i=0; i < body_length; i++)
-        printf("%02X ", body_req[i]);
-    printf("\n");
-    //
+        memset(&first_req, 0, sizeof(first_req));
+        memset(&array_req, 0, sizeof(array_req));
+        memset(&body_req, 0, sizeof(body_req));
+    }
 
     //server_print_output(self);
 
