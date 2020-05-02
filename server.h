@@ -1,5 +1,5 @@
 #include "common_socket.h"
-#include "common_dbus.h"
+#include "server_dbus.h"
 
 typedef struct {
     socket_t socket_acceptor;

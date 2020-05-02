@@ -64,7 +64,6 @@ int server_receive(server_t *self) {
     char first_req[FIRST_LEN];
 
     while (socket_receive(&self->socket_client, first_req, FIRST_LEN) > 0) {
-        // TODO: le sobran los 4 bytes de la longitud del array, eso ya lo lei
         int array_length = dbus_get_array_length(&self->dbus, first_req) - sizeof(int);
         int body_length = dbus_get_body_length(&self->dbus, first_req);
 
