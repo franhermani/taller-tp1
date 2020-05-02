@@ -4,7 +4,7 @@
 
 #define OK 0
 #define ERROR -1
-#define FIRST_LEN 16
+#define FIRST_SIZE 16
 
 int main(int argc, char *argv[]) {
     server_t server;
@@ -49,11 +49,11 @@ int server_accept(server_t *self) {
 }
 
 int server_receive_and_send(server_t *self) {
-    char first_req[FIRST_LEN];
+    char first_req[FIRST_SIZE];
 
-    while (socket_receive(&self->socket_client, first_req, FIRST_LEN) > 0) {
+    while (socket_receive(&self->socket_client, first_req, FIRST_SIZE) > 0) {
         server_receive(self, first_req);
-        memset(&first_req, 0, sizeof(first_req));
+        memset(&first_req, 0, FIRST_SIZE);
         server_print_output(self);
         server_send(self, self->msg);
     }
@@ -67,7 +67,7 @@ int server_receive(server_t *self, char *first_req) {
     int ARRAY_SIZE = dbus_get_array_length(&self->dbus, first_req);
     int BODY_SIZE = dbus_get_body_length(&self->dbus, first_req);
 
-    // Array length already included in first FIRST_LEN bytes
+    // Array length already included in first FIRST_SIZE bytes
     ARRAY_SIZE -= sizeof(int);
 
     char array_req[ARRAY_SIZE];
@@ -82,29 +82,28 @@ int server_receive(server_t *self, char *first_req) {
     // TODO: eliminar esto cuando termine de debuggear
     /*
     //printf("FIRST BYTES\n");
-    for (int i=0; i < FIRST_LEN; i++)
+    for (int i=0; i < FIRST_SIZE; i++)
         printf("%02X ", first_req[i]);
     //printf("\n\n");
 
     //printf("ARRAY\n");
-    for (int i=0; i < array_length; i++)
+    for (int i=0; i < ARRAY_SIZE; i++)
         printf("%02X ", array_req[i]);
     //printf("\n\n");
 
     //printf("BODY\n");
-    for (int i=0; i < body_length; i++)
+    for (int i=0; i < BODY_SIZE; i++)
         printf("%02X ", body_req[i]);
     //printf("\n\n");
     printf("\n");
     //
     */
 
-    // TODO: aplico protocolo a array_req y body_req y guardo todo en self->dbus
-    dbus_build_array(&self->dbus, array_req);
-    dbus_build_body(&self->dbus, body_req);
+    dbus_build_array(&self->dbus, array_req, ARRAY_SIZE);
+    dbus_build_body(&self->dbus, body_req, BODY_SIZE);
 
-    memset(&array_req, 0, sizeof(array_req));
-    memset(&body_req, 0, sizeof(body_req));
+    memset(&array_req, 0, ARRAY_SIZE);
+    memset(&body_req, 0, BODY_SIZE);
 
     return OK;
 }
@@ -118,10 +117,10 @@ int server_send(server_t *self, const char *msg) {
 
 void server_print_output(server_t *self) {
     printf("* Id: 0x...\n");
-    printf("* Destino: ...\n");
-    printf("* Path: ...\n");
-    printf("* Interfaz: ...\n");
-    printf("* Método: ...\n");
+    printf("* Destino: %s\n", self->dbus.msg.destiny);
+    //printf("* Path: %s\n", self->dbus.msg.path);
+    //printf("* Interfaz: %s\n", self->dbus.msg.interface);
+    //printf("* Método: %s\n", self->dbus.msg.method);
 
     // TODO: agregar el if y el for
     printf("* Parámetros:\n");

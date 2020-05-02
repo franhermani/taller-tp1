@@ -93,7 +93,7 @@ int client_receive(client_t *self) {
 
     while (socket_receive(&self->socket, response, RESPONSE_LEN) > 0) {
         client_print_output(self, response);
-        memset(&response, 0, sizeof(response));
+        memset(&response, 0, RESPONSE_LEN);
     }
     if (socket_shutdown(&self->socket, SHUT_RD) == ERROR)
         return ERROR;
