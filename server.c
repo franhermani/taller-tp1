@@ -128,10 +128,12 @@ void server_print_output(server_t *self) {
     printf("* Parámetros:\n");
 
     // TODO: tira violacion de segmento
+    /*
     int i;
     for (i=0; i < params_quant; i++) {
         char *param = self->dbus.msg.body.params[i].value;
         printf("    * %s\n", param);
     }
     printf("\n");
+    */
 }
