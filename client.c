@@ -3,7 +3,7 @@
 
 #define OK 0
 #define ERROR -1
-#define RESPONSE_LEN 4
+#define RESPONSE_LEN 3
 
 int main(int argc, char *argv[]) {
     client_t client;
@@ -12,8 +12,7 @@ int main(int argc, char *argv[]) {
     if (client_create(&client, host, port) == ERROR) return ERROR;
     if (client_process_input(&client, file_path) == ERROR) return ERROR;
     if (client_receive(&client) == ERROR) return ERROR;
-
-    client_destroy(&client);
+    if (client_destroy(&client) == ERROR) return ERROR;
 
     return 0;
 }
@@ -89,11 +88,10 @@ int client_send(client_t *self, byte_msg_t byte_msg) {
 int client_receive(client_t *self) {
     char response[RESPONSE_LEN];
 
-    if (socket_receive(&self->socket, response, RESPONSE_LEN) == ERROR)
-        return ERROR;
-
-    //client_print_output(self, response);
-
+    while (socket_receive(&self->socket, response, RESPONSE_LEN) > 0) {
+        client_print_output(self, response);
+        memset(&response, 0, sizeof(response));
+    }
     if (socket_shutdown(&self->socket, SHUT_RD) == ERROR)
         return ERROR;
 

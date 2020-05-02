@@ -25,7 +25,8 @@ int server_create(server_t *self, const char *host, const char *port) {
     if (socket_listen(&self->socket_acceptor) == ERROR)
         return ERROR;
 
-    if (dbus_create(&self->dbus) == ERROR) return ERROR;
+    if (dbus_create(&self->dbus) == ERROR)
+        return ERROR;
 
     self->msg = "OK\n";
 
@@ -42,6 +43,21 @@ int server_destroy(server_t *self) {
 
 int server_accept(server_t *self) {
     if (socket_accept(&self->socket_acceptor, &self->socket_client) == ERROR)
+        return ERROR;
+
+    return OK;
+}
+
+int server_receive_and_send(server_t *self) {
+    char first_req[FIRST_LEN];
+
+    while (socket_receive(&self->socket_client, first_req, FIRST_LEN) > 0) {
+        server_receive(self, first_req);
+        memset(&first_req, 0, sizeof(first_req));
+        server_print_output(self);
+        server_send(self, self->msg);
+    }
+    if (socket_shutdown(&self->socket_client, SHUT_RDWR) == ERROR)
         return ERROR;
 
     return OK;
@@ -89,27 +105,6 @@ int server_receive(server_t *self, char *first_req) {
 
 int server_send(server_t *self, const char *msg) {
     if (socket_send(&self->socket_client, msg, strlen(msg)) == ERROR)
-        return ERROR;
-
-    return OK;
-}
-
-int server_receive_and_send(server_t *self) {
-    char first_req[FIRST_LEN];
-
-    while (socket_receive(&self->socket_client, first_req, FIRST_LEN) > 0) {
-        server_receive(self, first_req);
-
-        memset(&first_req, 0, sizeof(first_req));
-
-        //server_print_output(self);
-
-        server_send(self, self->msg);
-    }
-    if (socket_shutdown(&self->socket_client, SHUT_RD) == ERROR)
-        return ERROR;
-
-    if (socket_shutdown(&self->socket_client, SHUT_WR) == ERROR)
         return ERROR;
 
     return OK;
