@@ -1,7 +1,6 @@
 #define _POSIX_C_SOURCE 200112L
 
 #include "client_dbus.h"
-#include "common_endian_converter.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>

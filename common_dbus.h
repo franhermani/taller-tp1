@@ -2,6 +2,7 @@
 #define COMMON_DBUS_H
 
 #include <stdint.h>
+#include "common_endian_converter.h"
 
 typedef struct {
     uint8_t type;             // 1st byte

@@ -15,6 +15,8 @@ static void dbus_build_param(dbus_t *self, char *array_req, uint8_t type);
 
 static void dbus_build_firm(dbus_t *self, char *array_req);
 
+static uint32_t dbus_build_uint32(dbus_t *self, int pos, char *array_req);
+
 static void dbus_advance_padding(dbus_t *self);
 
 
@@ -35,8 +37,7 @@ int dbus_get_array_length(dbus_t *self, char *first_req) {
                            sizeof(self->msg.header.body_length) +
                            sizeof(self->msg.header.id);
 
-    // TODO: devolver el uint32_t
-    return first_req[array_length_pos];
+    return dbus_build_uint32(self, array_length_pos, first_req);;
 }
 
 int dbus_get_body_length(dbus_t *self, char *first_req) {
@@ -45,8 +46,7 @@ int dbus_get_body_length(dbus_t *self, char *first_req) {
                           sizeof(self->msg.header.flags) +
                           sizeof(self->msg.header.version);
 
-    // TODO: devolver el uint32_t
-    return first_req[body_length_pos];
+    return dbus_build_uint32(self, body_length_pos, first_req);
 }
 
 void dbus_build_array(dbus_t *self, char *array_req, size_t array_size) {
@@ -70,19 +70,18 @@ void dbus_build_body(dbus_t *self, char *body_req) {
 
     int i;
     for (i=0; i < PARAMS_QUANT; i++) {
-        // TODO: devolver el uint32_t
-        uint32_t VALUE_LEN = body_req[self->byte_msg.pos];
+        uint32_t LEN = dbus_build_uint32(self, self->byte_msg.pos, body_req);
         self->byte_msg.pos += sizeof(body.params->length);
 
-        char value[VALUE_LEN];
+        char value[LEN];
 
         int j;
-        for (j=0; j < VALUE_LEN; j++) {
+        for (j=0; j < LEN; j++) {
             value[j] = body_req[self->byte_msg.pos];
             self->byte_msg.pos ++;
         }
-        value[VALUE_LEN] = '\0';
-        self->msg.body.params[i].length = VALUE_LEN;
+        value[LEN] = '\0';
+        self->msg.body.params[i].length = LEN;
         self->msg.body.params[i].value = value;
 
         self->byte_msg.pos ++;
@@ -121,18 +120,17 @@ static void dbus_build_param(dbus_t *self, char *array_req, uint8_t type) {
     self->byte_msg.pos += sizeof(param.type) + sizeof(param.data_quant) +
                           sizeof(param.data_type) + sizeof(param.end);
 
-    // TODO: leer uint32_t
-    uint32_t VALUE_LEN = array_req[self->byte_msg.pos];
-    char value[VALUE_LEN];
+    uint32_t LEN = dbus_build_uint32(self, self->byte_msg.pos, array_req);
+    char value[LEN];
 
     self->byte_msg.pos += sizeof(param.length);
 
     int i;
-    for (i=0; i < VALUE_LEN; i++) {
+    for (i=0; i < LEN; i++) {
         value[i] = array_req[self->byte_msg.pos];
         self->byte_msg.pos ++;
     }
-    value[VALUE_LEN] = '\0';
+    value[LEN] = '\0';
 
     self->byte_msg.pos += sizeof(param.end2);
     dbus_advance_padding(self);
@@ -141,6 +139,16 @@ static void dbus_build_param(dbus_t *self, char *array_req, uint8_t type) {
     if (type == 2) self->msg.interface = value;
     if (type == 3) self->msg.method = value;
     if (type == 6) self->msg.destiny = value;
+}
+
+static uint32_t dbus_build_uint32(dbus_t *self, int pos, char *array_req) {
+    uint8_t data[4];
+    int i, j = 0;
+    for (i = pos; i < pos + 4; i ++) {
+        data[j] = array_req[i];
+        j ++;
+    }
+    return little_to_big(data);;
 }
 
 static void dbus_advance_padding(dbus_t *self) {
