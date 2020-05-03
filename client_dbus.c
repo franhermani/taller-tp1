@@ -1,6 +1,7 @@
 #define _POSIX_C_SOURCE 200112L
 
 #include "client_dbus.h"
+#include "common_endian_converter.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -52,6 +53,10 @@ static void dbus_write_firm(dbus_t *self, firm_t firm);
 static void dbus_write_body_length(dbus_t *self);
 
 static void dbus_write_array_length(dbus_t *self);
+
+static void dbus_write_uint32(dbus_t *self, uint32_t value);
+
+static void dbus_overwrite_uint32(dbus_t *self, int pos, uint32_t value);
 
 static void dbus_write_padding(dbus_t *self);
 
@@ -236,18 +241,13 @@ static void dbus_write_header(dbus_t *self) {
     self->byte_msg.value[++self->byte_msg.pos] = self->msg.header.flags;
     self->byte_msg.value[++self->byte_msg.pos] = self->msg.header.version;
 
-    // TODO: llamar a una funcion que tome un uint32_t y lo escriba en little endian
-    // Longitud del cuerpo
+    // Body length will be filled in dbus_write_body_length()
     for (int i=0; i < 4; i ++)
-        self->byte_msg.value[++self->byte_msg.pos] = LATER; // Filled in dbus_write_body_length
-    //
+        self->byte_msg.value[++self->byte_msg.pos] = LATER;
 
-    // TODO: llamar a una funcion que tome un uint32_t y lo escriba en little endian
-    // ID del mensaje
-    self->byte_msg.value[++self->byte_msg.pos] = self->last_id;
-    for (int i=0; i < 3; i ++)
-        self->byte_msg.value[++self->byte_msg.pos] = 0;
-    //
+    // Id in little endian
+    dbus_write_uint32(self, self->last_id);
+
     int prev_pos = self->byte_msg.pos;
 
     dbus_write_params_array(self);
@@ -282,12 +282,8 @@ static void dbus_write_body(dbus_t *self) {
     while ((param = strtok_r(rest, ",", &rest))) {
         param_length = strlen(param);
 
-        // TODO: llamar a una funcion que tome un uint32_t y lo escriba en little endian
-        // Longitud del parametro
-        self->byte_msg.value[++self->byte_msg.pos] = param_length;
-        for (i=0; i < 3; i ++)
-            self->byte_msg.value[++self->byte_msg.pos] = 0;
-        //
+        // Param length in little endian
+        dbus_write_uint32(self, param_length);
 
         for (i=0; i < param_length; i ++)
             self->byte_msg.value[++self->byte_msg.pos] = param[i];
@@ -298,11 +294,9 @@ static void dbus_write_body(dbus_t *self) {
 }
 
 static void dbus_write_params_array(dbus_t *self) {
-    // TODO: llamar a una funcion que tome un uint32_t y lo escriba en little endian
-    // Longitud del array
+    // Array length will be filled in dbus_write_array_length
     for (int i=0; i < 4; i ++)
-        self->byte_msg.value[++self->byte_msg.pos] = LATER; // Filled in dbus_write_array_length
-    //
+        self->byte_msg.value[++self->byte_msg.pos] = LATER;
 
     dbus_write_param(self, self->msg.header.array.destiny);
     dbus_write_param(self, self->msg.header.array.path);
@@ -319,12 +313,8 @@ static void dbus_write_param(dbus_t *self, param_t param) {
     self->byte_msg.value[++self->byte_msg.pos] = param.data_type;
     self->byte_msg.value[++self->byte_msg.pos] = param.end;
 
-    // TODO: llamar a una funcion que tome un uint32_t y lo escriba en little endian
-    // Longitud del parametro
-    self->byte_msg.value[++self->byte_msg.pos] = param.length;
-    for (int i=0; i < 3; i ++)
-        self->byte_msg.value[++self->byte_msg.pos] = 0;
-    //
+    // Param length in little endian
+    dbus_write_uint32(self, param.length);
 
     int i;
     for (i=0; i < param.length; i++)
@@ -363,12 +353,9 @@ static void dbus_write_body_length(dbus_t *self) {
                           sizeof(self->msg.header.flags) +
                           sizeof(self->msg.header.version);
 
-    // TODO: llamar a una funcion que tome un uint32_t y lo escriba en little endian
-    // Longitud del cuerpo
-    self->byte_msg.value[body_length_pos] = self->msg.header.body_length;
-    for (int i=body_length_pos+1; i < body_length_pos+4; i ++)
-        self->byte_msg.value[i] = 0;
-    //
+    // Body length in little endian
+    uint32_t body_length = self->msg.header.body_length;
+    dbus_overwrite_uint32(self, body_length_pos, body_length);
 }
 
 static void dbus_write_array_length(dbus_t *self) {
@@ -379,12 +366,26 @@ static void dbus_write_array_length(dbus_t *self) {
                            sizeof(self->msg.header.body_length) +
                            sizeof(self->msg.header.id);
 
-    // TODO: llamar a una funcion que tome un uint32_t y lo escriba en little endian
-    // Longitud del array
-    self->byte_msg.value[array_length_pos] = self->msg.header.array.length;
-    for (int i=array_length_pos+1; i < array_length_pos+4; i ++)
-        self->byte_msg.value[i] = 0;
-    //
+    // Array length in little endian
+    uint32_t array_length = self->msg.header.array.length;
+    dbus_overwrite_uint32(self, array_length_pos, array_length);
+}
+
+static void dbus_write_uint32(dbus_t *self, uint32_t value) {
+    uint8_t new_data[4];
+    big_to_little(value, new_data);
+    for (int i=0; i < 4; i++)
+        self->byte_msg.value[++self->byte_msg.pos] = new_data[i];
+}
+
+static void dbus_overwrite_uint32(dbus_t *self, int pos, uint32_t value) {
+    uint8_t new_data[4];
+    big_to_little(value, new_data);
+    int i, j = 0;
+    for (i = pos; i < pos + 4; i ++) {
+        self->byte_msg.value[i] = new_data[j];
+        j ++;
+    }
 }
 
 static void dbus_write_padding(dbus_t *self) {
@@ -398,11 +399,5 @@ static void dbus_destroy_firm_types(dbus_t *self) {
 }
 
 void dbus_destroy_byte_msg(dbus_t *self) {
-    // TODO: eliminar esto cuando termine de debuggear
-    //for (int i=0; i < self->byte_msg.pos; i++)
-        //printf("%d: %02X\n", i, self->byte_msg.value[i]);
-        //printf("%02X ", self->byte_msg.value[i]);
-    //printf("\n");
-    //
     free(self->byte_msg.value);
 }

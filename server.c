@@ -54,7 +54,7 @@ int server_receive_and_send(server_t *self) {
     while (socket_receive(&self->socket_client, first_req, FIRST_SIZE) > 0) {
         server_receive(self, first_req);
         memset(&first_req, 0, FIRST_SIZE);
-        server_print_output(self);
+        //server_print_output(self);
         server_send(self, self->msg);
     }
     if (socket_shutdown(&self->socket_client, SHUT_RDWR) == ERROR)
@@ -80,7 +80,7 @@ int server_receive(server_t *self, char *first_req) {
         return ERROR;
 
     // TODO: eliminar esto cuando termine de debuggear
-    /*
+
     //printf("FIRST BYTES\n");
     for (int i=0; i < FIRST_SIZE; i++)
         printf("%02X ", first_req[i]);
@@ -97,7 +97,7 @@ int server_receive(server_t *self, char *first_req) {
     //printf("\n\n");
     printf("\n");
     //
-    */
+
 
     dbus_build_array(&self->dbus, array_req, ARRAY_SIZE);
     dbus_build_body(&self->dbus, body_req);
