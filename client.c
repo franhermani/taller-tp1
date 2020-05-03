@@ -21,6 +21,7 @@ int client_create(client_t *self, const char *host, const char *port) {
     if (socket_create(&self->socket, host, port) == ERROR) return ERROR;
     if (dbus_create(&self->dbus) == ERROR) return ERROR;
 
+    self->msg_id = 0;
     return OK;
 }
 
@@ -94,6 +95,5 @@ int client_receive(client_t *self) {
 }
 
 void client_print_output(client_t *self, const char *response) {
-    // TODO: reemplazar el 100 por el id
-    printf("0x%08X: %s", 500, response);
+    printf("0x%08X: %s", ++self->msg_id, response);
 }

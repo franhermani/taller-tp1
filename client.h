@@ -4,6 +4,7 @@
 typedef struct {
     socket_t socket;
     dbus_t dbus;
+    uint32_t msg_id;
 } client_t;
 
 int client_create(client_t *self, const char *host, const char *port);
