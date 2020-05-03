@@ -29,6 +29,20 @@ int dbus_destroy(dbus_t *self) {
     return OK;
 }
 
+int dbus_destroy_msg(dbus_t *self) {
+    free(self->msg.destiny);
+    free(self->msg.path);
+    free(self->msg.interface);
+    free(self->msg.method);
+
+    int i;
+    for (i = 0; i < self->msg.header.array.firm.params_quant; i ++)
+        free(self->msg.body.params[i].value);
+
+    return OK;
+}
+
+
 int dbus_get_array_length(dbus_t *self, char *first_req) {
     int array_length_pos = sizeof(self->msg.header.endianness) +
                            sizeof(self->msg.header.type) +
@@ -51,10 +65,6 @@ int dbus_get_body_length(dbus_t *self, char *first_req) {
 
 void dbus_build_array(dbus_t *self, char *array_req, size_t array_size) {
     self->byte_msg.pos = 0;
-    self->msg.destiny = NULL;
-    self->msg.path = NULL;
-    self->msg.interface = NULL;
-    self->msg.method = NULL;
 
     while (self->byte_msg.pos < array_size)
         dbus_build_params(self, array_req);
@@ -70,20 +80,19 @@ void dbus_build_body(dbus_t *self, char *body_req) {
 
     int i;
     for (i=0; i < PARAMS_QUANT; i++) {
-        uint32_t LEN = dbus_build_uint32(self, self->byte_msg.pos, body_req);
+        uint32_t len = dbus_build_uint32(self, self->byte_msg.pos, body_req);
+        char *value = malloc(len * sizeof(char));
+
         self->byte_msg.pos += sizeof(body.params->length);
 
-        char value[LEN];
-
         int j;
-        for (j=0; j < LEN; j++) {
+        for (j=0; j < len; j++) {
             value[j] = body_req[self->byte_msg.pos];
             self->byte_msg.pos ++;
         }
-        value[LEN] = '\0';
-        self->msg.body.params[i].length = LEN;
+        value[len] = '\0';
+        self->msg.body.params[i].length = len;
         self->msg.body.params[i].value = value;
-
         self->byte_msg.pos ++;
     }
 }
@@ -120,17 +129,17 @@ static void dbus_build_param(dbus_t *self, char *array_req, uint8_t type) {
     self->byte_msg.pos += sizeof(param.type) + sizeof(param.data_quant) +
                           sizeof(param.data_type) + sizeof(param.end);
 
-    uint32_t LEN = dbus_build_uint32(self, self->byte_msg.pos, array_req);
-    char value[LEN];
+    uint32_t len = dbus_build_uint32(self, self->byte_msg.pos, array_req);
+    char *value = malloc(len * sizeof(char));
 
     self->byte_msg.pos += sizeof(param.length);
 
     int i;
-    for (i=0; i < LEN; i++) {
+    for (i=0; i < len; i++) {
         value[i] = array_req[self->byte_msg.pos];
         self->byte_msg.pos ++;
     }
-    value[LEN] = '\0';
+    value[len] = '\0';
 
     self->byte_msg.pos += sizeof(param.end2);
     dbus_advance_padding(self);

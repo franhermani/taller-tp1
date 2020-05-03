@@ -80,7 +80,6 @@ int server_receive(server_t *self, char *first_req) {
         return ERROR;
 
     // TODO: eliminar esto cuando termine de debuggear
-
     //printf("FIRST BYTES\n");
     for (int i=0; i < FIRST_SIZE; i++)
         printf("%02X ", first_req[i]);
@@ -97,7 +96,6 @@ int server_receive(server_t *self, char *first_req) {
     //printf("\n\n");
     printf("\n");
     //
-
 
     dbus_build_array(&self->dbus, array_req, ARRAY_SIZE);
     dbus_build_body(&self->dbus, body_req);
@@ -116,7 +114,7 @@ int server_send(server_t *self, const char *msg) {
 }
 
 void server_print_output(server_t *self) {
-    // TODO: reemplazar el 100 por el id
+    // TODO: reemplazar el 500 por el id
     printf("* Id: 0x%08X\n", 500);
     printf("* Destino: %s\n", self->dbus.msg.destiny);
     printf("* Path: %s\n", self->dbus.msg.path);
@@ -124,17 +122,15 @@ void server_print_output(server_t *self) {
     printf("* Método: %s\n", self->dbus.msg.method);
 
     int params_quant = self->dbus.msg.header.array.firm.params_quant;
-    if (params_quant == 0) return;
+    if (params_quant > 0) {
+        printf("* Parámetros:\n");
 
-    printf("* Parámetros:\n");
-
-    // TODO: tira violacion de segmento
-    /*
-    int i;
-    for (i=0; i < params_quant; i++) {
-        char *param = self->dbus.msg.body.params[i].value;
-        printf("    * %s\n", param);
+        int i;
+        for (i=0; i < params_quant; i++) {
+            char *param = self->dbus.msg.body.params[i].value;
+            printf("    * %s\n", param);
+        }
+        printf("\n");
     }
-    printf("\n");
-    */
+    dbus_destroy_msg(&self->dbus);
 }

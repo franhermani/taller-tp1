@@ -8,7 +8,7 @@
 #define OK 0
 #define ERROR -1
 #define PADDING 8
-#define LATER 255
+#define LATER 0
 
 /* --------------------------------------------------- */
 /* Private methods to fill the structs for one message */
@@ -120,7 +120,7 @@ static int dbus_build_header(dbus_t *self) {
     self->msg.header.type = 1;
     self->msg.header.flags = 0;
     self->msg.header.version = 1;
-    self->msg.header.body_length = LATER; // Filled in dbus_write_body
+    self->msg.header.body_length = LATER; // Filled in dbus_write_body_length
     self->msg.header.id = ++self->last_id;
     dbus_build_param_array(self);
     return OK;
@@ -240,7 +240,7 @@ static void dbus_write_header(dbus_t *self) {
     self->byte_msg.value[++self->byte_msg.pos] = self->msg.header.flags;
     self->byte_msg.value[++self->byte_msg.pos] = self->msg.header.version;
 
-    // Body length will be filled in dbus_write_body_length()
+    // Body length will be filled in dbus_write_body_length
     for (int i=0; i < 4; i ++)
         self->byte_msg.value[++self->byte_msg.pos] = LATER;
 
@@ -251,6 +251,7 @@ static void dbus_write_header(dbus_t *self) {
 
     dbus_write_params_array(self);
 
+    // Fills array length
     self->msg.header.array.length = self->byte_msg.array_last_pos - prev_pos;
 }
 
