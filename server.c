@@ -64,22 +64,34 @@ int server_receive_and_send(server_t *self) {
 }
 
 int server_receive(server_t *self, char *first_req) {
-    int ARRAY_SIZE = dbus_get_array_length(&self->dbus, first_req);
-    int BODY_SIZE = dbus_get_body_length(&self->dbus, first_req);
+    int array_len = dbus_get_array_length(&self->dbus, first_req);
+    int body_len = dbus_get_body_length(&self->dbus, first_req);
 
     // Array length already included in first FIRST_SIZE bytes
-    ARRAY_SIZE -= sizeof(int);
+    array_len -= sizeof(int);
 
-    char array_req[ARRAY_SIZE];
-    char body_req[BODY_SIZE];
+    char *array_req = malloc(array_len * sizeof(char));
+    if (! array_req) return ERROR;
 
-    if (socket_receive(&self->socket_client, array_req, ARRAY_SIZE) == ERROR)
+    if (socket_receive(&self->socket_client, array_req, array_len) == ERROR)
         return ERROR;
 
-    if (socket_receive(&self->socket_client, body_req, BODY_SIZE) == ERROR)
-        return ERROR;
+    dbus_build_array(&self->dbus, array_req, array_len);
+    free(array_req);
+
+    if (body_len > 0) {
+        char *body_req = malloc(body_len * sizeof(char));
+        if (! body_req) return ERROR;
+
+        if (socket_receive(&self->socket_client, body_req, body_len) == ERROR)
+            return ERROR;
+
+        dbus_build_body(&self->dbus, body_req);
+        free(body_req);
+    }
 
     // TODO: eliminar esto cuando termine de debuggear
+    /*
     //printf("FIRST BYTES\n");
     for (int i=0; i < FIRST_SIZE; i++)
         printf("%02X ", first_req[i]);
@@ -96,13 +108,7 @@ int server_receive(server_t *self, char *first_req) {
     //printf("\n\n");
     printf("\n");
     //
-
-    dbus_build_array(&self->dbus, array_req, ARRAY_SIZE);
-    dbus_build_body(&self->dbus, body_req);
-
-    memset(&array_req, 0, ARRAY_SIZE);
-    memset(&body_req, 0, BODY_SIZE);
-
+    */
     return OK;
 }
 
@@ -121,6 +127,8 @@ void server_print_output(server_t *self) {
     printf("* Interfaz: %s\n", self->dbus.msg.interface);
     printf("* Método: %s\n", self->dbus.msg.method);
 
+    dbus_destroy_array(&self->dbus);
+
     int params_quant = self->dbus.msg.header.array.firm.params_quant;
     if (params_quant > 0) {
         printf("* Parámetros:\n");
@@ -131,6 +139,6 @@ void server_print_output(server_t *self) {
             printf("    * %s\n", param);
         }
         printf("\n");
+        dbus_destroy_body(&self->dbus);
     }
-    dbus_destroy_msg(&self->dbus);
 }

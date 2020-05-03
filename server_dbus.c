@@ -29,16 +29,20 @@ int dbus_destroy(dbus_t *self) {
     return OK;
 }
 
-int dbus_destroy_msg(dbus_t *self) {
+int dbus_destroy_array(dbus_t *self) {
     free(self->msg.destiny);
     free(self->msg.path);
     free(self->msg.interface);
     free(self->msg.method);
+    return OK;
+}
 
+int dbus_destroy_body(dbus_t *self) {
     int i;
     for (i = 0; i < self->msg.header.array.firm.params_quant; i ++)
         free(self->msg.body.params[i].value);
 
+    free(self->msg.body.params);
     return OK;
 }
 
@@ -74,12 +78,12 @@ void dbus_build_body(dbus_t *self, char *body_req) {
     body_t body;
     self->byte_msg.pos = 0;
 
-    uint8_t PARAMS_QUANT = self->msg.header.array.firm.params_quant;
-    body_param_t params[PARAMS_QUANT];
+    uint8_t params_quant = self->msg.header.array.firm.params_quant;
+    body_param_t *params = malloc(params_quant * sizeof(body_param_t));
     self->msg.body.params = params;
 
     int i;
-    for (i=0; i < PARAMS_QUANT; i++) {
+    for (i=0; i < params_quant; i++) {
         uint32_t len = dbus_build_uint32(self, self->byte_msg.pos, body_req);
         char *value = malloc(len * sizeof(char));
 

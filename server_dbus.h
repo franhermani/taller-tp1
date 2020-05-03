@@ -8,7 +8,9 @@ int dbus_create(dbus_t *self);
 
 int dbus_destroy(dbus_t *self);
 
-int dbus_destroy_msg(dbus_t *self);
+int dbus_destroy_array(dbus_t *self);
+
+int dbus_destroy_body(dbus_t *self);
 
 int dbus_get_array_length(dbus_t *self, char *first_req);
 
