@@ -76,12 +76,10 @@ int client_send(client_t *self, byte_msg_t byte_msg) {
     if (s == ERROR) return ERROR;
 
     // TODO: eliminar esto cuando termine de debuggear
-
     for (int i=0; i < byte_msg.length; i++)
         printf("%02X ", byte_msg.value[i]);
     printf("\n");
     //
-
 
     dbus_destroy_byte_msg(&self->dbus);
 
@@ -101,6 +99,7 @@ int client_receive(client_t *self) {
     return OK;
 }
 
-void client_print_output(client_t *client, const char *response) {
-    printf("0x...: %s", response);
+void client_print_output(client_t *self, const char *response) {
+    // TODO: reemplazar el 100 por el id
+    printf("0x%08X: %s", 500, response);
 }

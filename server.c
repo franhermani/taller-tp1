@@ -54,7 +54,7 @@ int server_receive_and_send(server_t *self) {
     while (socket_receive(&self->socket_client, first_req, FIRST_SIZE) > 0) {
         server_receive(self, first_req);
         memset(&first_req, 0, FIRST_SIZE);
-        //server_print_output(self);
+        server_print_output(self);
         server_send(self, self->msg);
     }
     if (socket_shutdown(&self->socket_client, SHUT_RDWR) == ERROR)
@@ -116,7 +116,8 @@ int server_send(server_t *self, const char *msg) {
 }
 
 void server_print_output(server_t *self) {
-    printf("* Id: 0x...\n");
+    // TODO: reemplazar el 100 por el id
+    printf("* Id: 0x%08X\n", 500);
     printf("* Destino: %s\n", self->dbus.msg.destiny);
     printf("* Path: %s\n", self->dbus.msg.path);
     printf("* Interfaz: %s\n", self->dbus.msg.interface);
