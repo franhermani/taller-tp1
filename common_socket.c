@@ -173,7 +173,6 @@ int socket_receive(socket_t *self, char *buffer, size_t length) {
         socket_close(self);
         return ERROR;
     }
-    buffer[tot_bytes_recv] = '\0';
     return tot_bytes_recv;
 }
 
