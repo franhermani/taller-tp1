@@ -1,6 +1,4 @@
 #include "common_endian_converter.h"
-#include <stdio.h>
-#include <stdlib.h>
 
 void big_to_little(uint32_t data, uint8_t *new_data) {
     new_data[0] = (data & 0x000000FF);
