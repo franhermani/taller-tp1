@@ -70,6 +70,9 @@ int server_receive(server_t *self, char *first_req) {
     // Array length already included in first FIRST_SIZE bytes
     array_len -= sizeof(int);
 
+    // Also receives last padding bytes
+    array_len += dbus_get_array_last_padding(&self->dbus, array_len);
+
     char *array_req = malloc(array_len * sizeof(char));
     if (! array_req) return ERROR;
 
@@ -89,26 +92,6 @@ int server_receive(server_t *self, char *first_req) {
         dbus_build_body(&self->dbus, body_req);
         free(body_req);
     }
-
-    // TODO: eliminar esto cuando termine de debuggear
-    /*
-    //printf("FIRST BYTES\n");
-    for (int i=0; i < FIRST_SIZE; i++)
-        printf("%02X ", first_req[i]);
-    //printf("\n\n");
-
-    //printf("ARRAY\n");
-    for (int i=0; i < ARRAY_SIZE; i++)
-        printf("%02X ", array_req[i]);
-    //printf("\n\n");
-
-    //printf("BODY\n");
-    for (int i=0; i < BODY_SIZE; i++)
-        printf("%02X ", body_req[i]);
-    //printf("\n\n");
-    printf("\n");
-    //
-    */
     return OK;
 }
 
@@ -139,7 +122,7 @@ void server_print_output(server_t *self) {
             char *param = self->dbus.msg.body.params[i].value;
             printf("    * %s\n", param);
         }
-        printf("\n");
         dbus_destroy_body(&self->dbus);
     }
+    printf("\n");
 }

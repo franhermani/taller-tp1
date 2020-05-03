@@ -16,6 +16,8 @@ int dbus_get_array_length(dbus_t *self, char *first_req);
 
 int dbus_get_body_length(dbus_t *self, char *first_req);
 
+int dbus_get_array_last_padding(dbus_t *self, int array_len);
+
 void dbus_build_array(dbus_t *self, char *array_req, size_t array_size);
 
 void dbus_build_body(dbus_t *self, char *body_req);

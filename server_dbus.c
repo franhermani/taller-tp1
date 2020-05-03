@@ -71,6 +71,10 @@ int dbus_get_body_length(dbus_t *self, char *first_req) {
     return self->msg.header.body_length;
 }
 
+int dbus_get_array_last_padding(dbus_t *self, int array_len) {
+    return ((array_len % PADDING == 0) ? 0 : PADDING - (array_len % PADDING));
+}
+
 void dbus_build_array(dbus_t *self, char *array_req, size_t array_size) {
     self->byte_msg.pos = 0;
 
