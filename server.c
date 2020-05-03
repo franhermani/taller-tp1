@@ -66,6 +66,7 @@ int server_receive_and_send(server_t *self) {
 int server_receive(server_t *self, char *first_req) {
     int array_len = dbus_get_array_length(&self->dbus, first_req);
     int body_len = dbus_get_body_length(&self->dbus, first_req);
+    dbus_set_message_id(&self->dbus, first_req);
 
     // Array length already included in first FIRST_SIZE bytes
     array_len -= sizeof(int);
@@ -103,8 +104,7 @@ int server_send(server_t *self, const char *msg) {
 }
 
 void server_print_output(server_t *self) {
-    // TODO: reemplazar el 500 por el id
-    printf("* Id: 0x%08X\n", 500);
+    printf("* Id: 0x%08X\n", self->dbus.last_id);
     printf("* Destino: %s\n", self->dbus.msg.destiny);
     printf("* Path: %s\n", self->dbus.msg.path);
     printf("* Interfaz: %s\n", self->dbus.msg.interface);

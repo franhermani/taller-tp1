@@ -12,6 +12,8 @@ int dbus_destroy_array(dbus_t *self);
 
 int dbus_destroy_body(dbus_t *self);
 
+void dbus_set_message_id(dbus_t *self, char *first_req);
+
 int dbus_get_array_length(dbus_t *self, char *first_req);
 
 int dbus_get_body_length(dbus_t *self, char *first_req);

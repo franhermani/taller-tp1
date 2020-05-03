@@ -46,6 +46,15 @@ int dbus_destroy_body(dbus_t *self) {
     return OK;
 }
 
+void dbus_set_message_id(dbus_t *self, char *first_req) {
+    int message_id_pos = sizeof(self->msg.header.endianness) +
+                         sizeof(self->msg.header.type) +
+                         sizeof(self->msg.header.flags) +
+                         sizeof(self->msg.header.version) +
+                         sizeof(self->msg.header.body_length);
+
+    self->last_id = dbus_build_uint32(self, message_id_pos, first_req);
+}
 
 int dbus_get_array_length(dbus_t *self, char *first_req) {
     int array_length_pos = sizeof(self->msg.header.endianness) +
