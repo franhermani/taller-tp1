@@ -129,10 +129,11 @@ void server_print_output(server_t *self) {
 
     dbus_destroy_array(&self->dbus);
 
-    int params_quant = self->dbus.msg.header.array.firm.params_quant;
-    if (params_quant > 0) {
+    int body_len = self->dbus.msg.header.body_length;
+    if (body_len > 0) {
         printf("* Parámetros:\n");
 
+        int params_quant = self->dbus.msg.header.array.firm.params_quant;
         int i;
         for (i=0; i < params_quant; i++) {
             char *param = self->dbus.msg.body.params[i].value;

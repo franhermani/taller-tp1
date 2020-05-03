@@ -55,7 +55,9 @@ int dbus_get_array_length(dbus_t *self, char *first_req) {
                            sizeof(self->msg.header.body_length) +
                            sizeof(self->msg.header.id);
 
-    return dbus_build_uint32(self, array_length_pos, first_req);;
+    self->msg.header.array.length = dbus_build_uint32(self, array_length_pos,
+                                                      first_req);
+    return self->msg.header.array.length;
 }
 
 int dbus_get_body_length(dbus_t *self, char *first_req) {
@@ -64,7 +66,9 @@ int dbus_get_body_length(dbus_t *self, char *first_req) {
                           sizeof(self->msg.header.flags) +
                           sizeof(self->msg.header.version);
 
-    return dbus_build_uint32(self, body_length_pos, first_req);
+    self->msg.header.body_length = dbus_build_uint32(self, body_length_pos,
+                                                     first_req);
+    return self->msg.header.body_length;
 }
 
 void dbus_build_array(dbus_t *self, char *array_req, size_t array_size) {
@@ -85,7 +89,7 @@ void dbus_build_body(dbus_t *self, char *body_req) {
     int i;
     for (i=0; i < params_quant; i++) {
         uint32_t len = dbus_build_uint32(self, self->byte_msg.pos, body_req);
-        char *value = malloc(len * sizeof(char) + 1);
+        char *value = malloc((len * sizeof(char)) + 1);
 
         self->byte_msg.pos += sizeof(body.params->length);
 
@@ -134,7 +138,7 @@ static void dbus_build_param(dbus_t *self, char *array_req, uint8_t type) {
                           sizeof(param.data_type) + sizeof(param.end);
 
     uint32_t len = dbus_build_uint32(self, self->byte_msg.pos, array_req);
-    char *value = malloc(len * sizeof(char) + 1);
+    char *value = malloc((len * sizeof(char)) + 1);
 
     self->byte_msg.pos += sizeof(param.length);
 
