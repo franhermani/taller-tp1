@@ -8,8 +8,6 @@
 
 #define OK 0
 #define ERROR -1
-#define PADDING 8
-#define LATER 0
 
 /* ---------------------------------------------------- */
 /* Private methods to build the structs for one message */
@@ -156,17 +154,18 @@ static void dbus_build_header(dbus_t *self) {
 static void dbus_build_param_array(dbus_t *self) {
     self->msg.header.array.length = LATER; // Filled in dbus_write_header
 
-    dbus_build_param(&self->msg.header.array.destiny, 6, 's',
+    dbus_build_param(&self->msg.header.array.destiny, TYPE_DESTINY, 's',
                      self->msg.destiny);
-    dbus_build_param(&self->msg.header.array.path, 1, 'o',
+    dbus_build_param(&self->msg.header.array.path, TYPE_PATH, 'o',
                      self->msg.path);
-    dbus_build_param(&self->msg.header.array.interface, 2, 's',
+    dbus_build_param(&self->msg.header.array.interface, TYPE_INTERFACE, 's',
                      self->msg.interface);
-    dbus_build_param(&self->msg.header.array.method, 3, 's',
+    dbus_build_param(&self->msg.header.array.method, TYPE_METHOD, 's',
                      self->msg.method);
 
     if (self->msg.firm)
-        dbus_build_firm(&self->msg.header.array.firm, 9, 'g', self->msg.firm);
+        dbus_build_firm(&self->msg.header.array.firm, TYPE_FIRM, 'g',
+                        self->msg.firm);
 }
 
 static void dbus_build_param(param_t *param, uint8_t type,
@@ -177,7 +176,7 @@ static void dbus_build_param(param_t *param, uint8_t type,
     param->end = 0;
     param->length = strlen(value);
     param->value = value;
-    param->end2 = '\0';
+    param->end2 = 0;
 }
 
 static void dbus_build_firm(firm_t *firm, uint8_t type,

@@ -7,7 +7,6 @@
 
 #define OK 0
 #define ERROR -1
-#define PADDING 8
 
 static void dbus_build_params(dbus_t *self, char *array_req);
 
@@ -121,7 +120,7 @@ void dbus_build_body(dbus_t *self, char *body_req) {
 static void dbus_build_params(dbus_t *self, char *array_req) {
     uint8_t type = array_req[self->byte_msg.pos];
 
-    if (type == 9) {
+    if (type == TYPE_FIRM) {
         dbus_build_firm(self, array_req);
     } else {
         dbus_build_param(self, array_req, type);
@@ -165,10 +164,10 @@ static void dbus_build_param(dbus_t *self, char *array_req, uint8_t type) {
     self->byte_msg.pos += sizeof(param.end2);
     dbus_advance_padding(self);
 
-    if (type == 1) self->msg.path = value;
-    if (type == 2) self->msg.interface = value;
-    if (type == 3) self->msg.method = value;
-    if (type == 6) self->msg.destiny = value;
+    if (type == TYPE_PATH) self->msg.path = value;
+    if (type == TYPE_INTERFACE) self->msg.interface = value;
+    if (type == TYPE_METHOD) self->msg.method = value;
+    if (type == TYPE_DESTINY) self->msg.destiny = value;
 }
 
 static uint32_t dbus_build_uint32(dbus_t *self, int pos, char *array_req) {

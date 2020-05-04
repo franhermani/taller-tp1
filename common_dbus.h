@@ -1,6 +1,14 @@
 #ifndef COMMON_DBUS_H
 #define COMMON_DBUS_H
 
+#define PADDING 8
+#define LATER 0
+#define TYPE_PATH 1
+#define TYPE_INTERFACE 2
+#define TYPE_METHOD 3
+#define TYPE_DESTINY 6
+#define TYPE_FIRM 9
+
 #include <stdint.h>
 #include "common_endian_converter.h"
 
