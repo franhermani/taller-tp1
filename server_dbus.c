@@ -1,9 +1,6 @@
 #define _POSIX_C_SOURCE 200112L
 
 #include "server_dbus.h"
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
 
 #define OK 0
 #define ERROR -1

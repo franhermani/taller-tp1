@@ -9,8 +9,8 @@
 #define TYPE_DESTINY 6
 #define TYPE_FIRM 9
 
-#include <stdint.h>
 #include "common_endian_converter.h"
+#include <stdint.h>
 
 typedef struct {
     uint8_t type;             // 1st byte
