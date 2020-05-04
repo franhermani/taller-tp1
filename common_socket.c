@@ -47,13 +47,19 @@ int socket_create(socket_t *self, const char *host, const char *port) {
 }
 
 int socket_shutdown(socket_t *self, int channel) {
-    if (shutdown(self->sd, channel) == -1) return ERROR;
+    if (shutdown(self->sd, channel) == -1) {
+        printf("Error: %s\n", strerror(errno));
+        return ERROR;
+    }
 
     return OK;
 }
 
 int socket_close(socket_t *self) {
-    if (close(self->sd) == -1) return ERROR;
+    if (close(self->sd) == -1) {
+        printf("Error: %s\n", strerror(errno));
+        return ERROR;
+    }
 
     self->sd = -1;
     socket_destroy(self);

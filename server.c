@@ -55,7 +55,7 @@ int server_receive_and_send(server_t *self) {
         server_print_output(self);
         server_send(self, self->msg);
     }
-    if (socket_shutdown(&self->socket_client, SHUT_RDWR) == ERROR)
+    if (socket_shutdown(&self->socket_client, SHUT_WR) == ERROR)
         return ERROR;
 
     return OK;

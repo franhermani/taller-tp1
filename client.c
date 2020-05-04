@@ -88,9 +88,6 @@ int client_receive(client_t *self) {
         client_print_output(self, response);
         memset(&response, 0, RESPONSE_LEN);
     }
-    if (socket_shutdown(&self->socket, SHUT_RD) == ERROR)
-        return ERROR;
-
     return OK;
 }
 
