@@ -4,58 +4,86 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 #define OK 0
 #define ERROR -1
 #define PADDING 8
 #define LATER 0
 
-/* --------------------------------------------------- */
-/* Private methods to fill the structs for one message */
-/* --------------------------------------------------- */
+/* ---------------------------------------------------- */
+/* Private methods to build the structs for one message */
+/* ---------------------------------------------------- */
 
+// Splits the line by spaces and parenthesis and stores the parameters
+// values in the dbus structure
+// Returns 0 if OK or error code
 static int dbus_parse_params(dbus_t *self, char *line);
 
-static int dbus_build_header(dbus_t *self);
+// Builds the header structure according to the dbus protocol
+static void dbus_build_header(dbus_t *self);
 
-static int dbus_build_param_array(dbus_t *self);
+// Builds the parameters array structure according to the dbus protocol
+static void dbus_build_param_array(dbus_t *self);
 
-static int dbus_build_param(param_t *param, uint8_t type,
+// Builds the parameter 'param' structure according to the dbus protocol
+static void dbus_build_param(param_t *param, uint8_t type,
                             uint8_t data_type, char *value);
 
-static int dbus_build_firm(firm_t *firm, uint8_t type,
+// Builds the firm structure according to the dbus protocol
+static void dbus_build_firm(firm_t *firm, uint8_t type,
                            uint8_t data_type, char *value);
 
+// Builds the number of parameters contained in the firm,
+// by splitting the string by commas
 static uint8_t dbus_build_params_quant(char *value);
 
+// Builds the parameters types contained in the firm (always 's'),
+// according to the number obtained in dbus_build_params_quant()
 static char *dbus_build_params_types(uint8_t params_quant);
 
-/* ------------------------------------------------------------- */
-/* Private methods to transform the structs into a uint8_t array */
-/* ------------------------------------------------------------- */
+/* ------------------------------------------------------------------- */
+/* Private methods to transform the structs into a byte message struct */
+/* ------------------------------------------------------------------- */
 
+// Converts all the structs previously built to a byte message structure,
+// containing the coded message and it's length
+// Returns 0 if OK or error code
 static int dbus_write_message(dbus_t *self);
 
+// Writes the header bytes to the byte message structure
 static void dbus_write_header(dbus_t *self);
 
+// Writes the body bytes to the byte message structure
 static void dbus_write_body(dbus_t *self);
 
+// Writes the parameters array bytes to the byte message structure
 static void dbus_write_params_array(dbus_t *self);
 
+// Writes the parameter 'param' bytes to the byte message structure
 static void dbus_write_param(dbus_t *self, param_t param);
 
+// Writes the 'firm' bytes to the byte message structure
 static void dbus_write_firm(dbus_t *self, firm_t firm);
 
+// Writes the body length bytes to the byte message structure
 static void dbus_write_body_length(dbus_t *self);
 
+// Writes the array length bytes to the byte message structure
 static void dbus_write_array_length(dbus_t *self);
 
+// Writes the 4 bytes (in little endian) corresponding to an uint32 'value'
 static void dbus_write_uint32(dbus_t *self, uint32_t value);
 
+// Overwrites the 4 bytes (in little endian) at a given 'pos'
+// corresponding to an uint32 'value'
 static void dbus_overwrite_uint32(dbus_t *self, int pos, uint32_t value);
 
+// Writes the padding bytes according to the actual position
+// in the byte message structure
 static void dbus_write_padding(dbus_t *self);
 
+// Destroys the firm's parameters types by freeing the memory saved for it
 static void dbus_destroy_firm_types(dbus_t *self);
 
 
@@ -63,13 +91,12 @@ static void dbus_destroy_firm_types(dbus_t *self);
 /* Public methods */
 /* -------------- */
 
-int dbus_create(dbus_t *self) {
+void dbus_create(dbus_t *self) {
     self->last_id = 0;
-    return OK;
 }
 
-int dbus_destroy(dbus_t *self) {
-    return OK;
+void dbus_destroy(dbus_t *self) {
+    // Do nothing
 }
 
 byte_msg_t dbus_parse_line(dbus_t *self, char *line) {
@@ -81,32 +108,42 @@ byte_msg_t dbus_parse_line(dbus_t *self, char *line) {
     return self->byte_msg;
 }
 
-/* --------------------------------------------------- */
-/* Private methods to fill the structs for one message */
-/* --------------------------------------------------- */
+void dbus_destroy_byte_msg(dbus_t *self) {
+    free(self->byte_msg.value);
+}
+
+/* ---------------------------------------------------- */
+/* Private methods to build the structs for one message */
+/* ---------------------------------------------------- */
 
 static int dbus_parse_params(dbus_t *self, char *line) {
     char *rest = line;
     char *params = strtok_r(rest, "(", &rest);
+    bool parsing_ok = true;
 
     self->msg.destiny = strtok_r(params, " ", &params);
-    if (! self->msg.destiny) return ERROR;
+    if (! self->msg.destiny) parsing_ok = false;
 
     self->msg.path = strtok_r(params, " ", &params);
-    if (! self->msg.path) return ERROR;
+    if (! self->msg.path) parsing_ok = false;
 
     self->msg.interface = strtok_r(params, " ", &params);
-    if (! self->msg.interface) return ERROR;
+    if (! self->msg.interface) parsing_ok = false;
 
     self->msg.method = strtok_r(params, " ", &params);
-    if (! self->msg.method) return ERROR;
+    if (! self->msg.method) parsing_ok = false;
 
     self->msg.firm = strtok_r(rest, ")", &rest);
 
-    return OK;
+    if (parsing_ok) {
+        return OK;
+    } else {
+        printf("Error parsing the parameters\n");
+        return ERROR;
+    }
 }
 
-static int dbus_build_header(dbus_t *self) {
+static void dbus_build_header(dbus_t *self) {
     self->msg.header.endianness = 'l';
     self->msg.header.type = 1;
     self->msg.header.flags = 0;
@@ -114,10 +151,9 @@ static int dbus_build_header(dbus_t *self) {
     self->msg.header.body_length = LATER; // Filled in dbus_write_body_length
     self->msg.header.id = ++self->last_id;
     dbus_build_param_array(self);
-    return OK;
 }
 
-static int dbus_build_param_array(dbus_t *self) {
+static void dbus_build_param_array(dbus_t *self) {
     self->msg.header.array.length = LATER; // Filled in dbus_write_header
 
     dbus_build_param(&self->msg.header.array.destiny, 6, 's',
@@ -131,11 +167,9 @@ static int dbus_build_param_array(dbus_t *self) {
 
     if (self->msg.firm)
         dbus_build_firm(&self->msg.header.array.firm, 9, 'g', self->msg.firm);
-
-    return OK;
 }
 
-static int dbus_build_param(param_t *param, uint8_t type,
+static void dbus_build_param(param_t *param, uint8_t type,
                             uint8_t data_type, char *value) {
     param->type = type;
     param->data_quant = 1;
@@ -144,10 +178,9 @@ static int dbus_build_param(param_t *param, uint8_t type,
     param->length = strlen(value);
     param->value = value;
     param->end2 = '\0';
-    return OK;
 }
 
-static int dbus_build_firm(firm_t *firm, uint8_t type,
+static void dbus_build_firm(firm_t *firm, uint8_t type,
                            uint8_t data_type, char *value) {
     firm->type = type;
     firm->data_quant = 1;
@@ -156,7 +189,6 @@ static int dbus_build_firm(firm_t *firm, uint8_t type,
     firm->params_quant = dbus_build_params_quant(value);
     firm->params_types = dbus_build_params_types(firm->params_quant);
     firm->end2 = 0;
-    return OK;
 }
 
 static uint8_t dbus_build_params_quant(char *value) {
@@ -179,9 +211,9 @@ static char *dbus_build_params_types(uint8_t params_quant) {
     return params_types;
 }
 
-/* ------------------------------------------------------------- */
-/* Private methods to transform the structs into a uint8_t array */
-/* ------------------------------------------------------------- */
+/* ------------------------------------------------------------------- */
+/* Private methods to transform the structs into a byte message struct */
+/* ------------------------------------------------------------------- */
 
 static int dbus_write_message(dbus_t *self) {
     // TODO: usar el TDA dynamic_buffer
@@ -347,8 +379,4 @@ static void dbus_write_padding(dbus_t *self) {
 
 static void dbus_destroy_firm_types(dbus_t *self) {
     free(self->msg.header.array.firm.params_types);
-}
-
-void dbus_destroy_byte_msg(dbus_t *self) {
-    free(self->byte_msg.value);
 }

@@ -19,14 +19,14 @@ int main(int argc, char *argv[]) {
 
 int client_create(client_t *self, const char *host, const char *port) {
     if (socket_create(&self->socket, host, port) == ERROR) return ERROR;
-    if (dbus_create(&self->dbus) == ERROR) return ERROR;
-
+    dbus_create(&self->dbus);
     self->msg_id = 0;
+
     return OK;
 }
 
 int client_destroy(client_t *self) {
-    if (dbus_destroy(&self->dbus) == ERROR) return ERROR;
+    dbus_destroy(&self->dbus);
     if (socket_close(&self->socket) == ERROR) return ERROR;
 
     return OK;
