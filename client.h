@@ -21,11 +21,11 @@ int client_destroy(client_t *self);
 // Returns 0 if OK or error code
 int client_process_input(client_t *self, const char *file_path);
 
-// Sends a byte message to the server
+// Sends messages to the server
 // Returns 0 if OK or error code
 int client_send(client_t *self, byte_msg_t);
 
-// Receives a message from the server
+// Receives messages from the server
 // Returns 0 if OK or error code
 int client_receive(client_t *self);
 
