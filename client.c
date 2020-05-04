@@ -89,5 +89,5 @@ int client_receive(client_t *self) {
 }
 
 void client_print_output(client_t *self, const char *response) {
-    printf("0x%08X: %s", ++self->msg_id, response);
+    printf("0x%08x: %s", ++self->msg_id, response);
 }

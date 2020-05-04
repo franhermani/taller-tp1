@@ -115,7 +115,7 @@ int server_send(server_t *self, const char *msg) {
 }
 
 void server_print_output(server_t *self) {
-    printf("* Id: 0x%08X\n", self->dbus.last_id);
+    printf("* Id: 0x%08x\n", self->dbus.last_id);
     printf("* Destino: %s\n", self->dbus.msg.destiny);
     printf("* Ruta: %s\n", self->dbus.msg.path);
     printf("* Interfaz: %s\n", self->dbus.msg.interface);
