@@ -1,5 +1,6 @@
 #include "common_socket.h"
 #include "client_dbus.h"
+#include <stdio.h>
 
 typedef struct {
     socket_t socket;
@@ -16,10 +17,10 @@ int client_create(client_t *self, const char *host, const char *port);
 // Returns 0 if OK or error code
 int client_destroy(client_t *self);
 
-// Reads the input file for the given 'file_path', applies dbus protocol to
-// each line and sends the message to the server
+// Reads the input file, applies dbus protocol to each line
+// and sends the message to the server
 // Returns 0 if OK or error code
-int client_process_input(client_t *self, const char *file_path);
+int client_process_input(client_t *self, FILE *input);
 
 // Sends messages to the server
 // Returns 0 if OK or error code

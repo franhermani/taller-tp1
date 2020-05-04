@@ -1,5 +1,4 @@
 #include "client.h"
-#include <stdio.h>
 
 #define OK 0
 #define ERROR -1
@@ -9,10 +8,16 @@ int main(int argc, char *argv[]) {
     client_t client;
     const char *host = argv[1], *port = argv[2], *file_path = argv[3];
 
+    FILE *input = file_path ? fopen(file_path, "r") : stdin;
+    if (! input) {
+        printf("Error opening file or reading stdin\n");
+        return ERROR;
+    }
     if (client_create(&client, host, port) == ERROR) return ERROR;
-    if (client_process_input(&client, file_path) == ERROR) return ERROR;
+    if (client_process_input(&client, input) == ERROR) return ERROR;
     if (client_receive(&client) == ERROR) return ERROR;
     if (client_destroy(&client) == ERROR) return ERROR;
+    if (input != stdin) fclose(input);
 
     return OK;
 }
@@ -33,26 +38,17 @@ int client_destroy(client_t *self) {
 }
 
 // TODO: modularizar esta funcion
-int client_process_input(client_t *self, const char *file_path) {
-    // TODO: contemplar entrada estandar
-    if (! file_path) return ERROR;
-
+int client_process_input(client_t *self, FILE *input) {
     // TODO: buffer dinamico
     char stat_buf[1024];
     byte_msg_t byte_msg;
 
-    FILE *fd;
-    if (! (fd = fopen(file_path, "r"))) {
-        printf("Error opening file\n");
-        return ERROR;
-    }
-
     int i, s = 1;
 
-    while (! feof(fd)) {
+    while (! feof(input)) {
         i = 0;
         while (s != 0) {
-            s = fread(&stat_buf[i], sizeof(char), 1, fd);
+            s = fread(&stat_buf[i], sizeof(char), 1, input);
             if (stat_buf[i] == '\n') {
                 stat_buf[i] = '\0';
                 byte_msg = dbus_parse_line(&self->dbus, stat_buf);
@@ -63,8 +59,6 @@ int client_process_input(client_t *self, const char *file_path) {
         }
         memset(&stat_buf, 0, sizeof(stat_buf));
     }
-    fclose(fd);
-
     if (socket_shutdown(&self->socket, SHUT_WR) == ERROR)
         return ERROR;
 
