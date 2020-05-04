@@ -2,6 +2,7 @@
 
 #define OK 0
 #define ERROR -1
+#define BUF_SIZE 32
 #define RESPONSE_LEN 3
 
 int main(int argc, char *argv[]) {
@@ -24,6 +25,7 @@ int main(int argc, char *argv[]) {
 
 int client_create(client_t *self, const char *host, const char *port) {
     if (socket_create(&self->socket, host, port) == ERROR) return ERROR;
+    if (dynamic_buffer_create(&self->dyn_buf, BUF_SIZE) == ERROR) return ERROR;
     dbus_create(&self->dbus);
     self->msg_id = 0;
 
@@ -32,6 +34,7 @@ int client_create(client_t *self, const char *host, const char *port) {
 
 int client_destroy(client_t *self) {
     dbus_destroy(&self->dbus);
+    dynamic_buffer_destroy(&self->dyn_buf);
     if (socket_close(&self->socket) == ERROR) return ERROR;
 
     return OK;

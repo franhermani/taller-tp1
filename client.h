@@ -1,9 +1,11 @@
 #include "common_socket.h"
+#include "client_dynamic_buffer.h"
 #include "client_dbus.h"
 #include <stdio.h>
 
 typedef struct {
     socket_t socket;
+    dynamic_buffer_t dyn_buf;
     dbus_t dbus;
     uint32_t msg_id;
 } client_t;
