@@ -16,10 +16,6 @@
 
 static int dbus_parse_params(dbus_t *self, char *line);
 
-static void dbus_parse_firm(dbus_t *self);
-
-static void dbus_destroy_firm(dbus_t *self);
-
 static int dbus_build_header(dbus_t *self);
 
 static int dbus_build_param_array(dbus_t *self);
@@ -80,9 +76,8 @@ byte_msg_t dbus_parse_line(dbus_t *self, char *line) {
     dbus_parse_params(self, line);
     dbus_build_header(self);
     dbus_write_message(self);
-    if (self->msg.firm) dbus_destroy_firm(self);
-
     self->byte_msg.length = self->byte_msg.pos;
+
     return self->byte_msg;
 }
 
@@ -107,28 +102,8 @@ static int dbus_parse_params(dbus_t *self, char *line) {
     if (! self->msg.method) return ERROR;
 
     self->msg.firm = strtok_r(rest, ")", &rest);
-    if (self->msg.firm) dbus_parse_firm(self);
 
     return OK;
-}
-
-static void dbus_parse_firm(dbus_t *self) {
-    char *firm = self->msg.firm;
-    char *new_firm = malloc((strlen(firm) * sizeof(char)) + 1);
-
-    int i, j = 0;
-    for (i = 0; i < strlen(firm); i ++) {
-        if (firm[i] != ' ') {
-            new_firm[j] = firm[i];
-            j ++;
-        }
-    }
-    new_firm[j]= '\0';
-    self->msg.firm = new_firm;
-}
-
-static void dbus_destroy_firm(dbus_t *self) {
-    free(self->msg.firm);
 }
 
 static int dbus_build_header(dbus_t *self) {
