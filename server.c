@@ -117,15 +117,15 @@ int server_send(server_t *self, const char *msg) {
 void server_print_output(server_t *self) {
     printf("* Id: 0x%08X\n", self->dbus.last_id);
     printf("* Destino: %s\n", self->dbus.msg.destiny);
-    printf("* Path: %s\n", self->dbus.msg.path);
+    printf("* Ruta: %s\n", self->dbus.msg.path);
     printf("* Interfaz: %s\n", self->dbus.msg.interface);
-    printf("* Método: %s\n", self->dbus.msg.method);
+    printf("* Metodo: %s\n", self->dbus.msg.method);
 
     dbus_destroy_array(&self->dbus);
 
     int body_len = self->dbus.msg.header.body_length;
     if (body_len > 0) {
-        printf("* Parámetros:\n");
+        printf("* Parametros:\n");
 
         int params_quant = self->dbus.msg.header.array.firm.params_quant;
         int i;
