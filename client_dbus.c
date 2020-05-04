@@ -22,9 +22,6 @@ static void dbus_destroy_firm(dbus_t *self);
 
 static int dbus_build_header(dbus_t *self);
 
-// TODO: arreglar esta funcion
-// static int dbus_build_body(dbus_t *self);
-
 static int dbus_build_param_array(dbus_t *self);
 
 static int dbus_build_param(param_t *param, uint8_t type,
@@ -82,16 +79,10 @@ int dbus_destroy(dbus_t *self) {
 byte_msg_t dbus_parse_line(dbus_t *self, char *line) {
     dbus_parse_params(self, line);
     dbus_build_header(self);
-
-    // TODO: arreglar esta funcion
-    //if (self->msg.firm) dbus_build_body(self);
-
     dbus_write_message(self);
-
     if (self->msg.firm) dbus_destroy_firm(self);
 
     self->byte_msg.length = self->byte_msg.pos;
-
     return self->byte_msg;
 }
 
@@ -150,28 +141,6 @@ static int dbus_build_header(dbus_t *self) {
     dbus_build_param_array(self);
     return OK;
 }
-
-// TODO: revisar esta funcion, tira violacion de segmento
-/*
-static int dbus_build_body(dbus_t *self) {
-    uint8_t params_quant = self->msg.header.array.firm.params_quant;
-    char *rest = self->msg.firm;
-
-    body_param_t param;
-    body_param_t params[params_quant];
-
-    self->msg.body.params = params;
-
-    int i;
-    for (i = 0; i < params_quant; i ++) {
-        param.value = strtok_r(rest, ",", &rest);
-        param.length = strlen(param.value);
-        param.value[param.length] = '\0';
-        self->msg.body.params[i] = param;
-    }
-    return OK;
-}
-*/
 
 static int dbus_build_param_array(dbus_t *self) {
     self->msg.header.array.length = LATER; // Filled in dbus_write_header
@@ -279,24 +248,6 @@ static void dbus_write_header(dbus_t *self) {
     // Fills array length
     self->msg.header.array.length = self->byte_msg.array_last_pos - prev_pos;
 }
-
-// TODO: llamar a esta funcion cuando arregle dbus_build_body
-/*
-static void dbus_write_body(dbus_t *self) {
-    int i;
-    for (i = 0; i < self->msg.header.array.firm.params_quant; i ++) {
-        // TODO: llamar a una funcion que tome un uint32_t y lo escriba en little endian
-        // Longitud del parametro de la firma
-        self->byte_msg.value[++self->byte_msg.pos] = self->msg.body.params[i].length;
-        for (j = 0; j < 3; j ++)
-            self->byte_msg.value[++self->byte_msg.pos] = 0;
-        //
-
-        for (j = 0; j < self->msg.body.params[i].length; j ++)
-            self->byte_msg.value[++self->byte_msg.pos] = self->msg.body.params[i].value[j];
-    }
-}
-*/
 
 static void dbus_write_body(dbus_t *self) {
     uint8_t param_length;
