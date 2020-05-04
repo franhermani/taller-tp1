@@ -14,7 +14,7 @@ int main(int argc, char *argv[]) {
     if (client_receive(&client) == ERROR) return ERROR;
     if (client_destroy(&client) == ERROR) return ERROR;
 
-    return 0;
+    return OK;
 }
 
 int client_create(client_t *self, const char *host, const char *port) {

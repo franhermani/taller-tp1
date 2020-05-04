@@ -19,6 +19,14 @@ typedef struct {
 // or connects (if client) to the first available address
 int socket_create(socket_t *self, const char *host, const char *port);
 
+// Shuts down a socket given channel (SHUT_WR, SHUT_RD or SHUT_RDWR)
+// Returns 0 if OK or error code
+int socket_shutdown(socket_t *self, int channel);
+
+// Closes a socket
+// Returns 0 if OK or error code
+int socket_close(socket_t *self);
+
 // [Server only] Listens to incoming sockets connections and
 // sends them to the queue
 // Returns 0 if OK or error code
@@ -37,13 +45,5 @@ int socket_send(socket_t *self, const char *buffer, size_t length);
 // stores them in 'buffer'
 // Returns number of bytes received or error code
 int socket_receive(socket_t *self, char *buffer, size_t length);
-
-// Shuts down a socket given channel (SHUT_WR, SHUT_RD or SHUT_RDWR)
-// Returns 0 if OK or error code
-int socket_shutdown(socket_t *self, int channel);
-
-// Closes a socket
-// Returns 0 if OK or error code
-int socket_close(socket_t *self);
 
 #endif // SOCKET_H
