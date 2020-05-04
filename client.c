@@ -26,8 +26,8 @@ int client_create(client_t *self, const char *host, const char *port) {
 }
 
 int client_destroy(client_t *self) {
-    dbus_destroy(&self->dbus);
-    socket_close(&self->socket);
+    if (dbus_destroy(&self->dbus) == ERROR) return ERROR;
+    if (socket_close(&self->socket) == ERROR) return ERROR;
 
     return OK;
 }
