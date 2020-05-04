@@ -5,41 +5,54 @@
 #define OK 0
 #define ERROR -1
 
+/* ---------------------------------------------------- */
+/* Private methods to build the structs for one message */
+/* ---------------------------------------------------- */
+
+// Calls the proper build method by reading the first byte of
+// the 'array_req' received from the client
 static void dbus_build_params(dbus_t *self, char *array_req);
 
+// Obtains the parameter length and value and stores it in the proper
+// dbus structure attribute according to the 'type' received
 static void dbus_build_param(dbus_t *self, char *array_req, uint8_t type);
 
+// Obtains the firm's parameters quantity and stores it in the dbus structure
 static void dbus_build_firm(dbus_t *self, char *array_req);
 
+// Converts the 4-size array of bytes at 'pos' in 'array_req'
+// (in little endian) to a 4-byte number (in big endian)
 static uint32_t dbus_build_uint32(dbus_t *self, int pos, char *array_req);
 
+// Advances the padding bytes according to the actual position
 static void dbus_advance_padding(dbus_t *self);
 
 
-int dbus_create(dbus_t *self) {
+/* -------------- */
+/* Public methods */
+/* -------------- */
+
+void dbus_create(dbus_t *self) {
     self->last_id = 0;
-    return OK;
 }
 
-int dbus_destroy(dbus_t *self) {
-    return OK;
+void dbus_destroy(dbus_t *self) {
+    // Do nothing
 }
 
-int dbus_destroy_array(dbus_t *self) {
+void dbus_destroy_array(dbus_t *self) {
     free(self->msg.destiny);
     free(self->msg.path);
     free(self->msg.interface);
     free(self->msg.method);
-    return OK;
 }
 
-int dbus_destroy_body(dbus_t *self) {
+void dbus_destroy_body(dbus_t *self) {
     int i;
     for (i = 0; i < self->msg.header.array.firm.params_quant; i ++)
         free(self->msg.body.params[i].value);
 
     free(self->msg.body.params);
-    return OK;
 }
 
 void dbus_set_message_id(dbus_t *self, char *first_req) {
@@ -113,6 +126,10 @@ void dbus_build_body(dbus_t *self, char *body_req) {
         self->byte_msg.pos ++;
     }
 }
+
+/* ---------------------------------------------------- */
+/* Private methods to build the structs for one message */
+/* ---------------------------------------------------- */
 
 static void dbus_build_params(dbus_t *self, char *array_req) {
     uint8_t type = array_req[self->byte_msg.pos];

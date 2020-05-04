@@ -25,16 +25,14 @@ int server_create(server_t *self, const char *host, const char *port) {
     if (socket_listen(&self->socket_acceptor) == ERROR)
         return ERROR;
 
-    if (dbus_create(&self->dbus) == ERROR)
-        return ERROR;
-
+    dbus_create(&self->dbus);
     self->msg = "OK\n";
 
     return OK;
 }
 
 int server_destroy(server_t *self) {
-    if (dbus_destroy(&self->dbus) == ERROR) return ERROR;
+    dbus_destroy(&self->dbus);
     if (socket_close(&self->socket_client)) return ERROR;
     if (socket_close(&self->socket_acceptor)) return ERROR;
 
