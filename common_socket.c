@@ -51,7 +51,6 @@ int socket_shutdown(socket_t *self, int channel) {
         printf("Error: %s\n", strerror(errno));
         return ERROR;
     }
-
     return OK;
 }
 
@@ -60,7 +59,6 @@ int socket_close(socket_t *self) {
         printf("Error: %s\n", strerror(errno));
         return ERROR;
     }
-
     self->sd = -1;
     socket_destroy(self);
 
