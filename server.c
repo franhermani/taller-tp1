@@ -64,9 +64,16 @@ int server_receive_and_send(server_t *self) {
 }
 
 int server_receive(server_t *self, char *first_req) {
-    int array_len = dbus_get_array_length(&self->dbus, first_req);
-    int body_len = dbus_get_body_length(&self->dbus, first_req);
+    if (server_receive_array(self, first_req) == ERROR) return ERROR;
+    if (server_receive_body(self, first_req) == ERROR) return ERROR;
+
     dbus_set_message_id(&self->dbus, first_req);
+
+    return OK;
+}
+
+int server_receive_array(server_t *self, char *first_req) {
+    int array_len = dbus_get_array_length(&self->dbus, first_req);
 
     // Array length already included in first FIRST_SIZE bytes
     array_len -= sizeof(int);
@@ -82,6 +89,12 @@ int server_receive(server_t *self, char *first_req) {
 
     dbus_build_array(&self->dbus, array_req, array_len);
     free(array_req);
+
+    return OK;
+}
+
+int server_receive_body(server_t *self, char *first_req) {
+    int body_len = dbus_get_body_length(&self->dbus, first_req);
 
     if (body_len > 0) {
         char *body_req = malloc(body_len * sizeof(char));
