@@ -100,14 +100,14 @@ void dbus_build_body(dbus_t *self, char *body_req) {
     self->msg.body.params = params;
 
     int i;
-    for (i=0; i < params_quant; i++) {
+    for (i = 0; i < params_quant; i ++) {
         uint32_t len = dbus_build_uint32(self, self->byte_msg.pos, body_req);
         char *value = malloc((len * sizeof(char)) + 1);
 
         self->byte_msg.pos += sizeof(body.params->length);
 
         int j;
-        for (j=0; j < len; j++) {
+        for (j = 0; j < len; j ++) {
             value[j] = body_req[self->byte_msg.pos];
             self->byte_msg.pos ++;
         }
@@ -138,7 +138,7 @@ static void dbus_build_firm(dbus_t *self, char *array_req) {
     self->msg.header.array.firm.params_quant = params_quant;
 
     int i;
-    for (i=0; i < params_quant; i++) self->byte_msg.pos ++;
+    for (i = 0; i < params_quant; i ++) self->byte_msg.pos ++;
 
     self->byte_msg.pos += sizeof(firm.end2);
     dbus_advance_padding(self);
@@ -156,7 +156,7 @@ static void dbus_build_param(dbus_t *self, char *array_req, uint8_t type) {
     self->byte_msg.pos += sizeof(param.length);
 
     int i;
-    for (i=0; i < len; i++) {
+    for (i = 0; i < len; i ++) {
         value[i] = array_req[self->byte_msg.pos];
         self->byte_msg.pos ++;
     }
