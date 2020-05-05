@@ -14,7 +14,7 @@ int dynamic_buffer_create(dynamic_buffer_t *self, size_t size);
 
 bool dynamic_buffer_insert_data(dynamic_buffer_t *self, char *s, size_t len);
 
-void dynamic_buffer_clear_data(dynamic_buffer_t *self);
+int dynamic_buffer_clear_data(dynamic_buffer_t *self);
 
 void dynamic_buffer_destroy(dynamic_buffer_t *self);
 
