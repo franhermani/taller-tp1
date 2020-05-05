@@ -19,7 +19,7 @@ y del servidor; pero no entre ellos, sino de cada uno contra una instancia de *n
 Una vez que estuve satisfecho con el comportamiento de ambos por separado,
 procedí a testearlos en conjunto, hasta afinar los detalles que fueron surgiendo.
 
-En el momento en que mi par <cliente-servidor> se enviaba mensajes correctamente
+En el momento en que el par cliente-servidor se enviaba mensajes correctamente
 comencé con la implementación del protocolo D-Bus.
 
 ### Protocolo D-Bus
@@ -41,12 +41,12 @@ que pude analizar todos los casos borde de padding y demás.
 Una vez que la tira de bytes se armaba y enviaba correctamente, procedí a decodificarla
 desde el lado del servidor.
 
-Para ello, reutilicé los *structs* creados, pero creé nuevas funcionas para
+Para ello, reutilicé los *structs* creados, pero creé nuevas funciones para
 interpretar la tira de bytes según el protocolo.
 
 ### Refactorización
 
-Una vez corroborado el correcto funcionamiento del TP, con los casos de pruebas
+Una vez corroborado el correcto funcionamiento del TP con los casos de pruebas
 provistos por el SERCOM, pasé a una etapa final de refactorización general,
 la cual incluyó:
 
@@ -112,7 +112,7 @@ solicitado.
 
 # Aclaraciones
 
-Al momento de esta entrega, hay 3 funciones que pueden considerarse largas
+Al momento de esta entrega, hay algunas funciones que pueden considerarse largas
 por superar las 20 líneas de código.
 
 A continuación se las enumera y justifica su longitud:
@@ -122,7 +122,7 @@ y obtiene las direcciones disponibles para los parámetros dados, haciendo uso
 de *getaddrinfo()*. Su extensa longitud se debe a que luego realiza una u otra
 acción dependiendo si se trata de un socket cliente o servidor. En el caso del
 primero, realiza un *connect()*. En el caso del segundo, realiza un *bind()*.
-La razón de esto es que ambas llamadas se encuentran dentro del loop de las
+La ventaja es que ambas llamadas se encuentran dentro del loop de las
 direcciones, de modo tal que si alguna falla, puede intentar con la siguiente
 dirección disponible.
 
