@@ -40,14 +40,14 @@ int client_destroy(client_t *self) {
     return OK;
 }
 
-// TODO: modularizar esta funcion
 int client_process_input(client_t *self, FILE *input) {
-    char buf[BUF_SIZE], *line_break;
+    char buf[BUF_SIZE + 1], *line_break;
     size_t size;
     byte_msg_t byte_msg;
     int s;
 
     while ((s = fread(&buf, sizeof(char), BUF_SIZE, input)) > 0) {
+        buf[BUF_SIZE] = '\0';
         line_break = strchr(buf, '\n');
         if (line_break) {
             size = line_break - buf;
