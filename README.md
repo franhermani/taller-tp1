@@ -49,6 +49,7 @@ interpretar la tira de bytes según el protocolo.
 Una vez corroborado el correcto funcionamiento del TP, con los casos de pruebas
 provistos por el SERCOM, pasé a una etapa final de refactorización general,
 la cual incluyó:
+
 - Modularización de funciones
 - Correcta asignación de responsabilidades
 - Creación de las entidades *client* y *server* como tales, con sus atributos
@@ -66,3 +67,29 @@ la cual incluyó:
 
 # Aclaraciones
 
+Al momento de esta entrega, hay 3 funciones que pueden considerarse largas
+por superar las 20 líneas de código.
+
+A continuación se las enumera y justifica su longitud:
+
+- *socket_resolve_addr()*. Esta función recibe un socket, un host y un puerto
+y obtiene las direcciones disponibles para los parámetros dados, haciendo uso
+de *getaddrinfo()*. Su extensa longitud se debe a que luego realiza una u otra
+acción dependiendo si se trata de un socket cliente o servidor. En el caso del
+primero, realiza un *connect()*. En el caso del segundo, realiza un *bind()*.
+La razón de esto es que ambas llamadas se encuentran dentro del loop de las
+direcciones, de modo tal que si alguna falla, puede intentar con la siguiente
+dirección disponible.
+
+- *dbus_build_body()*. Esta función recibe un *struct dbus* y una tira de bytes
+desde el lado del servidor y construye los *structs* correspondientes al cuerpo
+del mensaje recibido. Su extensa longitud se debe a que estos *structs* tienen
+varios niveles jerárquicos, los cuales deben ser recorridos y completados con
+los loops correspondientes.
+
+- Por último, algunas de las funciones de *client_dbus.c* superan las 20 líneas
+principalmente porque, al llamar a la función *dbus_resize_byte_msg()* para
+redimensionar la tira de bytes para poder escribir los nuevos bytes, tienen que
+calcular el tamaño que ocuparán los próximos bytes. Este cálculo puede llevar
+varias líneas de código ya que debe aplicarse *sizeof()* a cada elemento del *struct*
+correspondiente.
