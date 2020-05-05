@@ -115,30 +115,24 @@ void dbus_destroy_byte_msg(dbus_t *self) {
 /* ---------------------------------------------------- */
 
 static int dbus_parse_params(dbus_t *self, char *line) {
-    char *rest = line;
-    char *params = strtok_r(rest, "(", &rest);
+    char *rest = line, *params = strtok_r(rest, "(", &rest);
     bool parsing_ok = true;
 
     self->msg.destiny = strtok_r(params, " ", &params);
     if (! self->msg.destiny) parsing_ok = false;
-
     self->msg.path = strtok_r(params, " ", &params);
     if (! self->msg.path) parsing_ok = false;
-
     self->msg.interface = strtok_r(params, " ", &params);
     if (! self->msg.interface) parsing_ok = false;
-
     self->msg.method = strtok_r(params, " ", &params);
     if (! self->msg.method) parsing_ok = false;
-
     self->msg.firm = strtok_r(rest, ")", &rest);
 
-    if (parsing_ok) {
-        return OK;
-    } else {
+    if (! parsing_ok) {
         printf("Error parsing the parameters\n");
         return ERROR;
     }
+    return OK;
 }
 
 static void dbus_build_header(dbus_t *self) {

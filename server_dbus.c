@@ -159,13 +159,11 @@ static void dbus_build_firm(dbus_t *self, char *array_req) {
 
 static void dbus_build_param(dbus_t *self, char *array_req, uint8_t type) {
     param_t param;
-
     self->byte_msg.pos += sizeof(param.type) + sizeof(param.data_quant) +
                           sizeof(param.data_type) + sizeof(param.end);
 
     uint32_t len = dbus_build_uint32(self, self->byte_msg.pos, array_req);
     char *value = malloc((len * sizeof(char)) + 1);
-
     self->byte_msg.pos += sizeof(param.length);
 
     int i;
@@ -174,7 +172,6 @@ static void dbus_build_param(dbus_t *self, char *array_req, uint8_t type) {
         self->byte_msg.pos ++;
     }
     value[len] = '\0';
-
     self->byte_msg.pos += sizeof(param.end2);
     dbus_advance_padding(self);
 
