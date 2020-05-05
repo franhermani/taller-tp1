@@ -89,6 +89,19 @@ Esto fue modelado así por los siguientes motivos:
 - Evitar tener un *.c* extremadamente largo con la mitad de las funciones
   utilizadas por el cliente y la otra mitad por el servidor
   
+Cabe destacar que tanto el *client_dbus* como el *server_dbus* tienen una
+gran cantidad de funciones bien modularizadas, cada una encargada de construir
+o leer la sección de la tira de bytes correspondientes.
+
+En el caso del *client_dbus*, primero se procede a construir las estructuras
+a partir de la línea del archivo leída. Esto facilita la posterior escritura
+de la tira de bytes.
+
+En el caso del *server_dbus* ocurre algo similar, pero con menor complejidad,
+ya que lo único que interesa son los valores de los parámetros del array.
+En este sentido, se construyen solo las estructuras necesarias para el output
+solicitado.  
+  
 ### Envío y recepción de datos por parte del cliente
 
 ![img1](images/img2.png)
