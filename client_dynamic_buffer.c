@@ -47,10 +47,7 @@ static bool dynamic_buffer_resize(dynamic_buffer_t *self, size_t new_size) {
 }
 
 int dynamic_buffer_clear_data(dynamic_buffer_t *self) {
-    free(self->data);
-    self->data = malloc(self->total_size * sizeof(char));
-    if (! self->data) return ERROR;
-
+    memset(self->data, 0, self->length);
     self->length = 0;
 
     return OK;
