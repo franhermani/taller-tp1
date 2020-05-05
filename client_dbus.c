@@ -8,6 +8,7 @@
 
 #define OK 0
 #define ERROR -1
+#define INITIAL_SIZE 1024
 
 /* ---------------------------------------------------- */
 /* Private methods to build the structs for one message */
@@ -209,9 +210,8 @@ static char *dbus_build_params_types(uint8_t params_quant) {
 /* ------------------------------------------------------------------- */
 
 static int dbus_write_message(dbus_t *self) {
-    // TODO: usar el TDA dynamic_buffer
     self->byte_msg.pos = 0;
-    self->byte_msg.value = malloc(1024 * sizeof(uint8_t));
+    self->byte_msg.value = malloc(INITIAL_SIZE * sizeof(uint8_t));
     if (! self->byte_msg.value) return ERROR;
 
     dbus_write_header(self);
