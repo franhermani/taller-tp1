@@ -19,10 +19,14 @@ int client_create(client_t *self, const char *host, const char *port);
 // Returns 0 if OK or error code
 int client_destroy(client_t *self);
 
-// Reads the input file, applies dbus protocol to each line
-// and sends the message to the server
+// Reads the input file by calling client_process_line()
 // Returns 0 if OK or error code
 int client_process_input(client_t *self, FILE *input);
+
+// Stores each line in a dynamic buffer, calls dbus_parse_line
+// to apply the protocol and sends it to the server
+// Returns 0 if OK or error code
+int client_process_line(client_t *self, FILE *input, char *buf);
 
 // Sends messages to the server
 // Returns 0 if OK or error code

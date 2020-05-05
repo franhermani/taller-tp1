@@ -41,31 +41,34 @@ int client_destroy(client_t *self) {
 }
 
 int client_process_input(client_t *self, FILE *input) {
-    char buf[BUF_SIZE + 1], *line_break;
-    size_t size;
-    byte_msg_t byte_msg;
+    char buf[BUF_SIZE + 1];
     int s;
 
     while ((s = fread(&buf, sizeof(char), BUF_SIZE, input)) > 0) {
-        buf[BUF_SIZE] = '\0';
-        line_break = strchr(buf, '\n');
-        if (line_break) {
-            size = line_break - buf;
-            fseek(input, size - BUF_SIZE + 1, SEEK_CUR);
-            dynamic_buffer_insert_data(&self->dyn_buf, buf, size);
-            dynamic_buffer_insert_data(&self->dyn_buf, "\0", 1);
-            byte_msg = dbus_parse_line(&self->dbus, self->dyn_buf.data);
-            dynamic_buffer_clear_data(&self->dyn_buf);
-            if (client_send(self, byte_msg) == ERROR) return ERROR;
-        } else {
-            size = BUF_SIZE;
-            dynamic_buffer_insert_data(&self->dyn_buf, buf, size);
-        }
-        memset(&buf, 0, BUF_SIZE);
+        if (client_process_line(self, input, buf) == ERROR) return ERROR;
         if (s < BUF_SIZE) break;
     }
     if (socket_shutdown(&self->socket, SHUT_WR) == ERROR)
         return ERROR;
+
+    return OK;
+}
+
+int client_process_line(client_t *self, FILE *input, char *buf) {
+    buf[BUF_SIZE] = '\0';
+    char *line_break = strchr(buf, '\n');
+    if (line_break) {
+        size_t size = line_break - buf;
+        fseek(input, size - BUF_SIZE + 1, SEEK_CUR);
+        dynamic_buffer_insert_data(&self->dyn_buf, buf, size);
+        dynamic_buffer_insert_data(&self->dyn_buf, "\0", 1);
+        byte_msg_t byte_msg = dbus_parse_line(&self->dbus, self->dyn_buf.data);
+        dynamic_buffer_clear_data(&self->dyn_buf);
+        if (client_send(self, byte_msg) == ERROR) return ERROR;
+    } else {
+        dynamic_buffer_insert_data(&self->dyn_buf, buf, BUF_SIZE);
+    }
+    memset(buf, 0, BUF_SIZE);
 
     return OK;
 }
