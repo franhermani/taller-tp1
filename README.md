@@ -85,13 +85,13 @@ Esto fue modelado así por los siguientes motivos:
 - Evitar tener un *.c* extremadamente largo con la mitad de las funciones
   utilizadas por el cliente y la otra mitad por el servidor
   
-### Envío de datos por parte del cliente
+### Envío y recepción de datos por parte del cliente
 
+![img1](images/img2.png)
 
+### Recepción y envío de datos por parte del servidor  
 
-### Recepción de datos por parte del servidor  
-
-
+![img1](images/img3.png)
 
 # Aclaraciones
 
