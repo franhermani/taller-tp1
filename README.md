@@ -63,6 +63,34 @@ la cual incluyó:
 
 # Puntos de interés
 
+### Protocolo D-Bus
+
+La estructura del protocolo D-Bus está definida en el archivo *common_dbus.h*.
+
+El siguiente diagrama la explica detalladamente:
+
+![img1](images/img1.png)
+
+Desde el lado del cliente se hace uso de las funciones definidas en *client_dbus.c*,
+el cual tiene su propio *.h*.
+
+Desde el lado del servidor se hace uso de las funciones definidas en *server_dbus.c*,
+el cual también tiene su propio *.h*.
+
+Sin embargo, ambos utilizan la estructura común definida en *common_dbus.h*.
+
+Esto fue modelado así por los siguientes motivos:
+
+- Evitar repetir una estructura que es común a ambos
+- Evitar tener un *.c* extremadamente largo con la mitad de las funciones
+  utilizadas por el cliente y la otra mitad por el servidor
+  
+### Envío de datos por parte del cliente
+
+
+
+### Recepción de datos por parte del servidor  
+
 
 
 # Aclaraciones
