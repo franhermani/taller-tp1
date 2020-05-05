@@ -1,3 +1,6 @@
+#ifndef CLIENT_H
+#define CLIENT_H
+
 #include "common_socket.h"
 #include "client_dynamic_buffer.h"
 #include "client_dbus.h"
@@ -38,3 +41,5 @@ int client_receive(client_t *self);
 
 // Prints the response from the server for each message sent
 void client_print_output(client_t *self, const char *response);
+
+#endif // CLIENT_H

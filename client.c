@@ -48,8 +48,7 @@ int client_process_input(client_t *self, FILE *input) {
         if (client_process_line(self, input, buf) == ERROR) return ERROR;
         if (s < BUF_SIZE) break;
     }
-    if (socket_shutdown(&self->socket, SHUT_WR) == ERROR)
-        return ERROR;
+    if (socket_shutdown(&self->socket, SHUT_WR) == ERROR) return ERROR;
 
     return OK;
 }
@@ -76,9 +75,8 @@ int client_process_line(client_t *self, FILE *input, char *buf) {
 int client_send(client_t *self, byte_msg_t byte_msg) {
     int s;
     s = socket_send(&self->socket, (char *) byte_msg.value, byte_msg.length);
-    if (s == ERROR) return ERROR;
-
     dbus_destroy_byte_msg(&self->dbus);
+    if (s == ERROR) return ERROR;
 
     return OK;
 }

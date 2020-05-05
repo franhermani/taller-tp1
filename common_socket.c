@@ -2,14 +2,9 @@
 
 #include "common_socket.h"
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <errno.h>
 #include <unistd.h>
-#include <netdb.h>
-#include <sys/socket.h>
-#include <sys/types.h>
 
 #define OK 0
 #define ERROR -1

@@ -372,6 +372,7 @@ static void dbus_write_array_length(dbus_t *self) {
 static void dbus_write_uint32(dbus_t *self, uint32_t value) {
     uint8_t new_data[4];
     big_to_little(value, new_data);
+
     for (int i = 0; i < 4; i ++)
         self->byte_msg.value[++self->byte_msg.pos] = new_data[i];
 }
@@ -379,6 +380,7 @@ static void dbus_write_uint32(dbus_t *self, uint32_t value) {
 static void dbus_overwrite_uint32(dbus_t *self, int pos, uint32_t value) {
     uint8_t new_data[4];
     big_to_little(value, new_data);
+
     int i, j = 0;
     for (i = pos; i < pos + 4; i ++) {
         self->byte_msg.value[i] = new_data[j];

@@ -1,3 +1,6 @@
+#ifndef SERVER_H
+#define SERVER_H
+
 #include "common_socket.h"
 #include "server_dbus.h"
 
@@ -45,3 +48,5 @@ int server_send(server_t *self, const char *msg);
 
 // Prints the decoded (with dbus protocol) message from the client
 void server_print_output(server_t *self);
+
+#endif // SERVER_H
