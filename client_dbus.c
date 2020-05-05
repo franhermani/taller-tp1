@@ -8,7 +8,7 @@
 
 #define OK 0
 #define ERROR -1
-#define INITIAL_SIZE 1024
+#define INITIAL_SIZE 16
 
 /* ---------------------------------------------------- */
 /* Private methods to build the structs for one message */
@@ -84,6 +84,13 @@ static void dbus_write_padding(dbus_t *self);
 
 // Destroys the firm's parameters types by freeing the memory saved for it
 static void dbus_destroy_firm_types(dbus_t *self);
+
+// Creates a byte message struct with allocated memory to store data
+static int dbus_create_byte_msg(dbus_t *self);
+
+// Resizes the byte message data allocated memory by increasing it
+// 'new_size' bytes
+static int dbus_resize_byte_msg(dbus_t *self, size_t new_size);
 
 
 /* -------------- */
@@ -210,9 +217,7 @@ static char *dbus_build_params_types(uint8_t params_quant) {
 /* ------------------------------------------------------------------- */
 
 static int dbus_write_message(dbus_t *self) {
-    self->byte_msg.pos = 0;
-    self->byte_msg.value = malloc(INITIAL_SIZE * sizeof(uint8_t));
-    if (! self->byte_msg.value) return ERROR;
+    if (dbus_create_byte_msg(self) == ERROR) return ERROR;
 
     dbus_write_header(self);
 
@@ -252,11 +257,15 @@ static void dbus_write_header(dbus_t *self) {
 static void dbus_write_body(dbus_t *self) {
     uint8_t param_length;
     int i, prev_pos = self->byte_msg.pos;
-    char *param;
-    char *rest = self->msg.firm;
+    char *param, *rest = self->msg.firm;
 
     while ((param = strtok_r(rest, ",", &rest))) {
         param_length = strlen(param);
+
+        // Resizes byte message
+        size_t new_size = sizeof(self->msg.body.params->length)
+                          + param_length + 1;
+        dbus_resize_byte_msg(self, new_size);
 
         // Param length in little endian
         dbus_write_uint32(self, param_length);
@@ -284,6 +293,12 @@ static void dbus_write_params_array(dbus_t *self) {
 }
 
 static void dbus_write_param(dbus_t *self, param_t param) {
+    // Resizes byte message
+    size_t new_size = sizeof(param.type) + sizeof(param.data_quant) +
+                      sizeof(param.data_type) + sizeof(param.end) +
+                      param.length + sizeof(param.end2);
+    dbus_resize_byte_msg(self, new_size);
+
     self->byte_msg.value[++self->byte_msg.pos] = param.type;
     self->byte_msg.value[++self->byte_msg.pos] = param.data_quant;
     self->byte_msg.value[++self->byte_msg.pos] = param.data_type;
@@ -305,6 +320,13 @@ static void dbus_write_param(dbus_t *self, param_t param) {
 }
 
 static void dbus_write_firm(dbus_t *self, firm_t firm) {
+    // Resizes byte message
+    size_t new_size = sizeof(firm.type) + sizeof(firm.data_quant) +
+                      sizeof(firm.data_type) + sizeof(firm.end) +
+                      sizeof(firm.params_quant) + firm.params_quant +
+                      sizeof(firm.end2);
+    dbus_resize_byte_msg(self, new_size);
+
     self->byte_msg.value[++self->byte_msg.pos] = firm.type;
     self->byte_msg.value[++self->byte_msg.pos] = firm.data_quant;
     self->byte_msg.value[++self->byte_msg.pos] = firm.data_type;
@@ -366,10 +388,29 @@ static void dbus_overwrite_uint32(dbus_t *self, int pos, uint32_t value) {
 
 static void dbus_write_padding(dbus_t *self) {
     int n = PADDING - (self->byte_msg.pos % PADDING) - 1;
+    dbus_resize_byte_msg(self, n);
+
     int i;
     for (i = 0; i < n; i ++) self->byte_msg.value[++self->byte_msg.pos] = 0;
 }
 
 static void dbus_destroy_firm_types(dbus_t *self) {
     free(self->msg.header.array.firm.params_types);
+}
+
+static int dbus_create_byte_msg(dbus_t *self) {
+    self->byte_msg.pos = 0;
+    self->byte_msg.value = malloc(INITIAL_SIZE * sizeof(uint8_t));
+    if (! self->byte_msg.value) return ERROR;
+
+    return OK;
+}
+
+static int dbus_resize_byte_msg(dbus_t *self, size_t new_size) {
+    self->byte_msg.value = realloc(self->byte_msg.value,
+                                   self->byte_msg.pos + new_size + PADDING);
+
+    if (! self->byte_msg.value) return ERROR;
+
+    return OK;
 }
