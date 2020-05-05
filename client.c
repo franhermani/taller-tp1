@@ -42,8 +42,7 @@ int client_destroy(client_t *self) {
 
 // TODO: modularizar esta funcion
 int client_process_input(client_t *self, FILE *input) {
-    char buf[BUF_SIZE];
-    char *line_break;
+    char buf[BUF_SIZE], *line_break;
     size_t size;
     byte_msg_t byte_msg;
     int s;
