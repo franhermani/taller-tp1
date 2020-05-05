@@ -42,25 +42,28 @@ int client_destroy(client_t *self) {
 
 // TODO: modularizar esta funcion
 int client_process_input(client_t *self, FILE *input) {
-    // TODO: buffer dinamico
-    char stat_buf[1024];
+    char buf[BUF_SIZE];
+    char *line_break;
+    size_t size;
     byte_msg_t byte_msg;
+    int s;
 
-    int i, s = 1;
-
-    while (! feof(input)) {
-        i = 0;
-        while (s != 0) {
-            s = fread(&stat_buf[i], sizeof(char), 1, input);
-            if (stat_buf[i] == '\n') {
-                stat_buf[i] = '\0';
-                byte_msg = dbus_parse_line(&self->dbus, stat_buf);
-                if (client_send(self, byte_msg) == ERROR) return ERROR;
-                break;
-            }
-            i ++;
+    while ((s = fread(&buf, sizeof(char), BUF_SIZE, input)) > 0) {
+        line_break = strchr(buf, '\n');
+        if (line_break) {
+            size = line_break - buf;
+            fseek(input, size - BUF_SIZE + 1, SEEK_CUR);
+            dynamic_buffer_insert_data(&self->dyn_buf, buf, size);
+            dynamic_buffer_insert_data(&self->dyn_buf, "\0", 1);
+            byte_msg = dbus_parse_line(&self->dbus, self->dyn_buf.data);
+            dynamic_buffer_clear_data(&self->dyn_buf);
+            if (client_send(self, byte_msg) == ERROR) return ERROR;
+        } else {
+            size = BUF_SIZE;
+            dynamic_buffer_insert_data(&self->dyn_buf, buf, size);
         }
-        memset(&stat_buf, 0, sizeof(stat_buf));
+        memset(&buf, 0, BUF_SIZE);
+        if (s < BUF_SIZE) break;
     }
     if (socket_shutdown(&self->socket, SHUT_WR) == ERROR)
         return ERROR;
