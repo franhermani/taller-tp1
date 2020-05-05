@@ -63,6 +63,10 @@ la cual incluyó:
 
 # Puntos de interés
 
+### Estructuras
+
+![img1](images/img4.png)
+
 ### Protocolo D-Bus
 
 La estructura del protocolo D-Bus está definida en el archivo *common_dbus.h*.
