@@ -1,5 +1,3 @@
-#define _POSIX_C_SOURCE 200112L
-
 #include "client_dbus.h"
 #include <string.h>
 #include <stdio.h>
@@ -115,12 +113,12 @@ byte_msg_t dbus_parse_line(dbus_t *self, char *line) {
 }
 
 void dbus_destroy_byte_msg(dbus_t *self) {
+    free(self->byte_msg.value);
     free(self->msg.destiny);
     free(self->msg.path);
     free(self->msg.interface);
     free(self->msg.method);
-    free(self->msg.firm);
-    free(self->byte_msg.value);
+    if (self->msg.firm) free(self->msg.firm);
 }
 
 /* ---------------------------------------------------- */
@@ -141,7 +139,8 @@ static int dbus_parse_params(dbus_t *self, char *line) {
             j = 0;
             continue;
         } else if (line[i] == end) {
-            firm[j] = '\0';
+            firm[j] = line[i];
+            firm[j+1] = '\0';
             continue;
         }
         if (is_firm) {
@@ -163,8 +162,13 @@ static int dbus_parse_params(dbus_t *self, char *line) {
     self->msg.path = path;
     self->msg.interface = interface;
     self->msg.method = method;
-    self->msg.firm = firm;
 
+    if (strlen(firm) > 1) {
+        self->msg.firm = firm;
+    } else {
+        self->msg.firm = NULL;
+        free(firm);
+    }
     return OK;
 }
 
@@ -281,24 +285,35 @@ static void dbus_write_header(dbus_t *self) {
 
 static void dbus_write_body(dbus_t *self) {
     uint8_t param_length;
-    int i, prev_pos = self->byte_msg.pos;
-    char *param, *rest = self->msg.firm;
+    int i, j = 0, k, prev_pos = self->byte_msg.pos;
+    const char delim = ',', end = ')';
+    int MAX_LENGTH = strlen(self->msg.firm);
+    char param[MAX_LENGTH];
 
-    while ((param = strtok_r(rest, ",", &rest))) {
-        param_length = strlen(param);
+    for (i = 0; self->msg.firm[i] != '\0'; i++) {
+        if (self->msg.firm[i] == delim || self->msg.firm[i] == end) {
+            param[j] = '\0';
+            param_length = strlen(param);
 
-        // Resizes byte message
-        size_t new_size = sizeof(self->msg.body.params->length)
-                          + param_length + 1;
-        dbus_resize_byte_msg(self, new_size);
+            // Resizes byte message
+            size_t new_size = sizeof(self->msg.body.params->length)
+                              + param_length + 1;
+            dbus_resize_byte_msg(self, new_size);
 
-        // Param length in little endian
-        dbus_write_uint32(self, param_length);
+            // Param length in little endian
+            dbus_write_uint32(self, param_length);
 
-        for (i = 0; i < param_length; i ++)
-            self->byte_msg.value[++self->byte_msg.pos] = param[i];
+            for (k = 0; k < param_length; k ++)
+                self->byte_msg.value[++self->byte_msg.pos] = param[k];
 
-        self->byte_msg.value[++self->byte_msg.pos] = 0;
+            self->byte_msg.value[++self->byte_msg.pos] = 0;
+
+            j = 0;
+            memset(param, 0, MAX_LENGTH);
+            continue;
+        }
+        param[j] = self->msg.firm[i];
+        j ++;
     }
     self->msg.header.body_length = self->byte_msg.pos - prev_pos;
 }
