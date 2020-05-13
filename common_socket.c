@@ -10,8 +10,6 @@
 #define ERROR -1
 #define MAX_LISTEN_QUEUE_LEN 1
 
-static void socket_destroy(socket_t *self);
-
 // Obtains addresses according to the given 'host' and 'port' and selects
 // the first available address
 // Returns 0 if OK or error code
@@ -41,6 +39,10 @@ int socket_create(socket_t *self, const char *host, const char *port) {
     return socket_resolve_addr(self, host, port);
 }
 
+void socket_destroy(socket_t *self) {
+    // Do nothing
+}
+
 int socket_shutdown(socket_t *self, int channel) {
     if (shutdown(self->sd, channel) == -1) {
         printf("Error: %s\n", strerror(errno));
@@ -55,7 +57,6 @@ int socket_close(socket_t *self) {
         return ERROR;
     }
     self->sd = -1;
-    socket_destroy(self);
 
     return OK;
 }
@@ -126,10 +127,6 @@ int socket_receive(socket_t *self, char *buffer, size_t length) {
         return ERROR;
     }
     return tot_bytes_recv;
-}
-
-static void socket_destroy(socket_t *self) {
-    // Do nothing
 }
 
 static int socket_resolve_addr(socket_t *self, const char *host,

@@ -19,6 +19,9 @@ typedef struct {
 // or connects (if client) to the first available address
 int socket_create(socket_t *self, const char *host, const char *port);
 
+// Destroys a socket
+void socket_destroy(socket_t *self);
+
 // Shuts down a socket given channel (SHUT_WR, SHUT_RD or SHUT_RDWR)
 // Returns 0 if OK or error code
 int socket_shutdown(socket_t *self, int channel);

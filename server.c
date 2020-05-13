@@ -35,6 +35,8 @@ int server_destroy(server_t *self) {
     dbus_destroy(&self->dbus);
     if (socket_close(&self->socket_client)) return ERROR;
     if (socket_close(&self->socket_acceptor)) return ERROR;
+    socket_destroy(&self->socket_client);
+    socket_destroy((&self->socket_acceptor));
 
     return OK;
 }

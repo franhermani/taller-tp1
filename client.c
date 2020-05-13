@@ -36,6 +36,7 @@ int client_destroy(client_t *self) {
     dbus_destroy(&self->dbus);
     dynamic_buffer_destroy(&self->dyn_buf);
     if (socket_close(&self->socket) == ERROR) return ERROR;
+    socket_destroy(&self->socket);
 
     return OK;
 }
