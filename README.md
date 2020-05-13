@@ -117,6 +117,11 @@ por superar las 20 líneas de código.
 
 A continuación se las enumera y justifica su longitud:
 
+- *main()* del *client.c*. Su longitud se debe a la necesidad de destruir objetos
+creados en caso de que alguna de las funciones intermedias devuelva un error.
+Esto se relaciona con el manejo poco elegante de errores que tiene C,
+a diferencia de C++.
+
 - *socket_resolve_addr()*. Esta función recibe un socket, un host y un puerto
 y obtiene las direcciones disponibles para los parámetros dados, haciendo uso
 de *getaddrinfo()*. Su extensa longitud se debe a que luego realiza una u otra
