@@ -115,6 +115,11 @@ byte_msg_t dbus_parse_line(dbus_t *self, char *line) {
 }
 
 void dbus_destroy_byte_msg(dbus_t *self) {
+    free(self->msg.destiny);
+    free(self->msg.path);
+    free(self->msg.interface);
+    free(self->msg.method);
+    free(self->msg.firm);
     free(self->byte_msg.value);
 }
 
@@ -123,23 +128,43 @@ void dbus_destroy_byte_msg(dbus_t *self) {
 /* ---------------------------------------------------- */
 
 static int dbus_parse_params(dbus_t *self, char *line) {
-    char *rest = line, *params = strtok_r(rest, "(", &rest);
-    bool parsing_ok = true;
-
-    self->msg.destiny = strtok_r(params, " ", &params);
-    if (! self->msg.destiny) parsing_ok = false;
-    self->msg.path = strtok_r(params, " ", &params);
-    if (! self->msg.path) parsing_ok = false;
-    self->msg.interface = strtok_r(params, " ", &params);
-    if (! self->msg.interface) parsing_ok = false;
-    self->msg.method = strtok_r(params, " ", &params);
-    if (! self->msg.method) parsing_ok = false;
-    self->msg.firm = strtok_r(rest, ")", &rest);
-
-    if (! parsing_ok) {
-        printf("Error parsing the parameters\n");
-        return ERROR;
+    int MAX_LENGTH = strlen(line);
+    char params[MAX_LENGTH];
+    char *firm = malloc(MAX_LENGTH);
+    const char delim = '(', end = ')';
+    bool is_firm = false;
+    int i, j = 0;
+    for (i = 0; line[i] != '\0'; i ++) {
+        if (line[i] == delim) {
+            params[j] = '\0';
+            is_firm = true;
+            j = 0;
+            continue;
+        } else if (line[i] == end) {
+            firm[j] = '\0';
+            continue;
+        }
+        if (is_firm) {
+            firm[j] = line[i];
+        } else {
+            params[j] = line[i];
+        }
+        j ++;
     }
+    MAX_LENGTH = strlen(params);
+    char *destiny = malloc(MAX_LENGTH);
+    char *path = malloc(MAX_LENGTH);
+    char *interface = malloc(MAX_LENGTH);
+    char *method = malloc(MAX_LENGTH);
+
+    sscanf(params, "%s %s %s %s", destiny, path, interface, method);
+
+    self->msg.destiny = destiny;
+    self->msg.path = path;
+    self->msg.interface = interface;
+    self->msg.method = method;
+    self->msg.firm = firm;
+
     return OK;
 }
 
