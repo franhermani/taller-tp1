@@ -188,7 +188,7 @@ static uint32_t dbus_build_uint32(dbus_t *self, int pos, char *array_req) {
         data[j] = array_req[i];
         j ++;
     }
-    return little_to_big(data);
+    return little_to_host(data);
 }
 
 static void dbus_advance_padding(dbus_t *self) {
