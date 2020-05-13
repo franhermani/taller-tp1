@@ -8,18 +8,34 @@
 int main(int argc, char *argv[]) {
     client_t client;
     const char *host = argv[1], *port = argv[2], *file_path = argv[3];
+    bool error = false, client_create_error = false;
 
     FILE *input = file_path ? fopen(file_path, "r") : stdin;
     if (! input) {
         printf("Error opening file or reading stdin\n");
         return ERROR;
     }
-    if (client_create(&client, host, port) == ERROR) return ERROR;
-    if (client_process_input(&client, input) == ERROR) return ERROR;
-    if (client_receive(&client) == ERROR) return ERROR;
-    if (client_destroy(&client) == ERROR) return ERROR;
+    while (true) {
+        if (client_create(&client, host, port) == ERROR) {
+            error = true;
+            client_create_error = true;
+            break;
+        }
+        if (client_process_input(&client, input) == ERROR) {
+            error = true;
+            break;
+        }
+        if (client_receive(&client) == ERROR) {
+            error = true;
+            break;
+        }
+        break;
+    }
     if (input != stdin) fclose(input);
-
+    if (! client_create_error) {
+        if (client_destroy(&client) == ERROR) return ERROR;
+    }
+    if (error) return ERROR;
     return OK;
 }
 
@@ -39,7 +55,11 @@ int client_create(client_t *self, const char *host, const char *port) {
 int client_destroy(client_t *self) {
     dbus_destroy(&self->dbus);
     dynamic_buffer_destroy(&self->dyn_buf);
-    if (socket_close(&self->socket) == ERROR) return ERROR;
+
+    if (socket_close(&self->socket) == ERROR) {
+        socket_destroy(&self->socket);
+        return ERROR;
+    }
     socket_destroy(&self->socket);
 
     return OK;
@@ -89,10 +109,13 @@ int client_send(client_t *self, byte_msg_t byte_msg) {
 int client_receive(client_t *self) {
     char response[RESPONSE_LEN];
 
-    while (socket_receive(&self->socket, response, RESPONSE_LEN) > 0) {
+    int s;
+    while ((s = socket_receive(&self->socket, response, RESPONSE_LEN)) > 0) {
         client_print_output(self, response);
         memset(&response, 0, RESPONSE_LEN);
     }
+    if (s == ERROR) return ERROR;
+
     return OK;
 }
 

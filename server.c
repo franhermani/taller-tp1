@@ -9,13 +9,23 @@
 int main(int argc, char *argv[]) {
     server_t server;
     const char *host = 0, *port = argv[1];
+    bool error = false;
 
     if (server_create(&server, host, port) == ERROR) return ERROR;
-    if (server_accept(&server) == ERROR) return ERROR;
-    if (server_receive_and_send(&server) == ERROR) return ERROR;
+    while (true) {
+        if (server_accept(&server) == ERROR) {
+            error = true;
+            break;
+        }
+        if (server_receive_and_send(&server) == ERROR) {
+            error = true;
+            break;
+        }
+        break;
+    }
     if (server_destroy(&server) == ERROR) return ERROR;
-
-    return 0;
+    if (error) return ERROR;
+    return OK;
 }
 
 int server_create(server_t *self, const char *host, const char *port) {
@@ -51,14 +61,16 @@ int server_accept(server_t *self) {
 int server_receive_and_send(server_t *self) {
     char first_req[FIRST_SIZE];
 
-    while (socket_receive(&self->socket_client, first_req, FIRST_SIZE) > 0) {
+    int s;
+    while ((s = socket_receive(&self->socket_client, first_req,
+            FIRST_SIZE)) > 0) {
         server_receive(self, first_req);
         memset(&first_req, 0, FIRST_SIZE);
         server_print_output(self);
         server_send(self, self->msg);
     }
-    if (socket_shutdown(&self->socket_client, SHUT_WR) == ERROR)
-        return ERROR;
+    if (socket_shutdown(&self->socket_client, SHUT_WR) == ERROR) return ERROR;
+    if (s == ERROR) return ERROR;
 
     return OK;
 }
