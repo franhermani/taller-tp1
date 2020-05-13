@@ -3,6 +3,7 @@
 
 #define OK 0
 #define ERROR -1
+#define REDIM 2
 
 // Returns true if the buffer has space to store 'len' bytes
 // or false if not
@@ -29,8 +30,9 @@ void dynamic_buffer_destroy(dynamic_buffer_t *self) {
 
 bool dynamic_buffer_insert_data(dynamic_buffer_t *self, char *s, size_t len) {
     if (! dynamic_buffer_has_space(self, len)) {
-        if (! dynamic_buffer_resize(self, self->total_size + len))
-            return false;
+        size_t new_size = self->total_size * REDIM;
+        if (new_size - self->length < len) new_size = len;
+        if (! dynamic_buffer_resize(self, new_size)) return false;
     }
     int i;
     for (i = 0; i < len; i ++) self->data[self->length + i] = s[i];

@@ -24,8 +24,12 @@ int main(int argc, char *argv[]) {
 }
 
 int client_create(client_t *self, const char *host, const char *port) {
-    if (socket_create(&self->socket, host, port) == ERROR) return ERROR;
-    if (dynamic_buffer_create(&self->dyn_buf, BUF_SIZE) == ERROR) return ERROR;
+    if (socket_create(&self->socket, host, port) == ERROR)
+        return ERROR;
+
+    if (dynamic_buffer_create(&self->dyn_buf, BUF_SIZE/2) == ERROR)
+        return ERROR;
+
     dbus_create(&self->dbus);
     self->msg_id = 0;
 
