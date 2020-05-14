@@ -155,13 +155,27 @@ static int dbus_parse_params(dbus_t *self, char *line) {
     char *path = malloc(MAX_LENGTH);
     char *interface = malloc(MAX_LENGTH);
     char *method = malloc(MAX_LENGTH);
+    char *params_array[4] = {destiny, path, interface, method};
 
-    sscanf(params, "%s %s %s %s", destiny, path, interface, method);
+    int k = 0;
+    j = 0;
+    const char space = ' ';
+    for (i = 0; params[i] != '\0'; i ++) {
+        if (params[i] == space) {
+            params_array[j][k] = '\0';
+            j ++;
+            k = 0;
+        } else {
+            params_array[j][k] = params[i];
+            k ++;
+        }
+    }
+    params_array[j][k] = '\0';
 
-    self->msg.destiny = destiny;
-    self->msg.path = path;
-    self->msg.interface = interface;
-    self->msg.method = method;
+    self->msg.destiny = params_array[0];
+    self->msg.path = params_array[1];
+    self->msg.interface = params_array[2];
+    self->msg.method = params_array[3];
 
     if (strlen(firm) > 1) {
         self->msg.firm = firm;
