@@ -1,6 +1,5 @@
 #include <string.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include "client_dbus.h"
 #include "client_parser.h"
 
@@ -16,7 +15,7 @@
 // Splits the line by spaces and parenthesis and stores the parameters
 // values in the dbus structure
 // Returns 0 if OK or error code
-static int dbus_parse_params(dbus_t *self, char *line);
+static void dbus_parse_params(dbus_t *self, char *line);
 
 // Builds the header structure according to the dbus protocol
 static void dbus_build_header(dbus_t *self);
@@ -126,7 +125,7 @@ void dbus_destroy_byte_msg(dbus_t *self) {
 /* Private methods to build the structs for one message */
 /* ---------------------------------------------------- */
 
-static int dbus_parse_params(dbus_t *self, char *line) {
+static void dbus_parse_params(dbus_t *self, char *line) {
     char *params_array[NUM_PARAMS];
     parse_line(line, params_array);
 
@@ -140,7 +139,6 @@ static int dbus_parse_params(dbus_t *self, char *line) {
         free(self->msg.firm);
         self->msg.firm = NULL;
     }
-    return OK;
 }
 
 static void dbus_build_header(dbus_t *self) {
@@ -255,16 +253,15 @@ static void dbus_write_header(dbus_t *self) {
 }
 
 static void dbus_write_body(dbus_t *self) {
-    uint8_t param_length;
-    int i, j = 0, k, prev_pos = self->byte_msg.pos;
     const char delim = ',', end = ')';
-    int MAX_LENGTH = strlen(self->msg.firm);
-    char param[MAX_LENGTH];
+    int i, j = 0, k, prev_pos = self->byte_msg.pos,
+    max_length = strlen(self->msg.firm);
+    char *param = malloc(max_length);
 
     for (i = 0; self->msg.firm[i] != '\0'; i++) {
         if (self->msg.firm[i] == delim || self->msg.firm[i] == end) {
             param[j] = '\0';
-            param_length = strlen(param);
+            uint8_t param_length = strlen(param);
 
             // Resizes byte message
             size_t new_size = sizeof(self->msg.body.params->length)
@@ -278,14 +275,14 @@ static void dbus_write_body(dbus_t *self) {
                 self->byte_msg.value[++self->byte_msg.pos] = param[k];
 
             self->byte_msg.value[++self->byte_msg.pos] = 0;
-
+            memset(param, 0, max_length);
             j = 0;
-            memset(param, 0, MAX_LENGTH);
             continue;
         }
         param[j] = self->msg.firm[i];
         j ++;
     }
+    free(param);
     self->msg.header.body_length = self->byte_msg.pos - prev_pos;
 }
 
