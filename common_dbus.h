@@ -1,6 +1,9 @@
 #ifndef COMMON_DBUS_H
 #define COMMON_DBUS_H
 
+#include "common_endian_converter.h"
+#include <stdint.h>
+
 #define PADDING 8
 #define LATER 0
 #define TYPE_PATH 1
@@ -8,9 +11,6 @@
 #define TYPE_METHOD 3
 #define TYPE_DESTINY 6
 #define TYPE_FIRM 8
-
-#include "common_endian_converter.h"
-#include <stdint.h>
 
 typedef struct {
     uint8_t type;             // 1st byte

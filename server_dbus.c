@@ -1,5 +1,3 @@
-#define _POSIX_C_SOURCE 200112L
-
 #include "server_dbus.h"
 
 #define OK 0
