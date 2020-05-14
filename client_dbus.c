@@ -1,11 +1,12 @@
-#include "client_dbus.h"
 #include <string.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include "client_dbus.h"
+#include "client_parser.h"
 
 #define OK 0
 #define ERROR -1
+#define NUM_PARAMS 5
 #define INITIAL_SIZE 16
 
 /* ---------------------------------------------------- */
@@ -126,62 +127,18 @@ void dbus_destroy_byte_msg(dbus_t *self) {
 /* ---------------------------------------------------- */
 
 static int dbus_parse_params(dbus_t *self, char *line) {
-    int MAX_LENGTH = strlen(line);
-    char params[MAX_LENGTH];
-    char *firm = malloc(MAX_LENGTH);
-    const char delim = '(', end = ')';
-    bool is_firm = false;
-    int i, j = 0;
-    for (i = 0; line[i] != '\0'; i ++) {
-        if (line[i] == delim) {
-            params[j] = '\0';
-            is_firm = true;
-            j = 0;
-            continue;
-        } else if (line[i] == end) {
-            firm[j] = line[i];
-            firm[j+1] = '\0';
-            continue;
-        }
-        if (is_firm) {
-            firm[j] = line[i];
-        } else {
-            params[j] = line[i];
-        }
-        j ++;
-    }
-    MAX_LENGTH = strlen(params);
-    char *destiny = malloc(MAX_LENGTH);
-    char *path = malloc(MAX_LENGTH);
-    char *interface = malloc(MAX_LENGTH);
-    char *method = malloc(MAX_LENGTH);
-    char *params_array[4] = {destiny, path, interface, method};
-
-    int k = 0;
-    j = 0;
-    const char space = ' ';
-    for (i = 0; params[i] != '\0'; i ++) {
-        if (params[i] == space) {
-            params_array[j][k] = '\0';
-            j ++;
-            k = 0;
-        } else {
-            params_array[j][k] = params[i];
-            k ++;
-        }
-    }
-    params_array[j][k] = '\0';
+    char *params_array[NUM_PARAMS];
+    parse_line(line, params_array);
 
     self->msg.destiny = params_array[0];
     self->msg.path = params_array[1];
     self->msg.interface = params_array[2];
     self->msg.method = params_array[3];
+    self->msg.firm = params_array[4];
 
-    if (strlen(firm) > 1) {
-        self->msg.firm = firm;
-    } else {
+    if (strlen(self->msg.firm) <= 1) {
+        free(self->msg.firm);
         self->msg.firm = NULL;
-        free(firm);
     }
     return OK;
 }
